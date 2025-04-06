@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orthocare - Admin Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        
+        .header {
+            background-color: #2d4569;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .logo {
+            height: 40px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+        
+        .user-name {
+            margin-right: 15px;
+            font-weight: bold;
+        }
+        
+        .logout-btn {
+            background-color: #92b4d3;
+            color: #2d4569;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .logout-btn:hover {
+            background-color: #7da3c7;
+        }
+        
+        .container {
+            padding: 20px;
+        }
+        
+        .dashboard-title {
+            color: #2d4569;
+            margin-bottom: 20px;
+        }
+        
+        .dashboard-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .card-title {
+            color: #2d4569;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .card-content {
+            color: #333;
+        }
+        
+        .stats {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2d4569;
+        }
+        
+        .nav-menu {
+            background-color: #92b4d3;
+            padding: 10px 20px;
+        }
+        
+        .nav-menu ul {
+            display: flex;
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .nav-menu li {
+            margin-right: 20px;
+        }
+        
+        .nav-menu a {
+            color: #2d4569;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        .nav-menu a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Orthocare Dental" class="logo">
+        <div class="user-info">
+            <span class="user-name">Welcome, {{ user_name }}</span>
+            <a href="{{ url_for('logout') }}"><button class="logout-btn">Logout</button></a>
+        </div>
+    </div>
+    
+    <div class="nav-menu">
+        <ul>
+            <li><a href="#">Dashboard</a></li>
+            <li><a href="#">Appointments</a></li>
+            <li><a href="#">Patients</a></li>
+            <li><a href="#">Treatments</a></li>
+            <li><a href="#">Dentists</a></li>
+            <li><a href="{{ url_for('user_management') }}">User Management</a></li>
+        </ul>
+    </div>
+    
+    <div class="container">
+        <h1 class="dashboard-title">Admin Dashboard</h1>
+        
+        <div class="dashboard-content">
+            <div class="card">
+                <div class="card-title">Today's Appointments</div>
+                <div class="card-content">
+                    <div class="stats">0</div>
+                    <p>Scheduled appointments for today</p>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">Total Patients</div>
+                <div class="card-content">
+                    <div class="stats">0</div>
+                    <p>Registered patients</p>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">Active Dentists</div>
+                <div class="card-content">
+                    <div class="stats">0</div>
+                    <p>Dentists currently available</p>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">Recent Activity</div>
+                <div class="card-content">
+                    <p>No recent activity to display.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
