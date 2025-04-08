@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orthocare - Treatments</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+        }
+        
+        .header {
+            background-color: #2d4569;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: fixed;
+            top: 0;
+            right: 0;
+            left: 250px; /* Make space for sidebar */
+            z-index: 100;
+            height: 50px;
+        }
+        
+        .header-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .header-icons {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .sidebar {
+            width: 250px;
+            background-color: #2d4569;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            color: white;
+            z-index: 200;
+        }
+        
+        .sidebar a {
+            display: block;
+            padding: 15px 20px;
+            color: white;
+            text-decoration: none;
+            border-left: 4px solid transparent;
+        }
+        
+        .sidebar a:hover,
+        .sidebar a.active {
+            background-color: #1f324d;
+            border-left: 4px solid #92b4d3;
+        }
+        
+        .main-content {
+            margin-left: 250px;
+            padding: 70px 20px 20px 20px; /* Add top padding to account for header */
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        
+        h2 {
+            margin-top: 0;
+            font-size: 24px;
+            font-weight: 600;
+            color: #2d4569;
+        }
+        
+        .search-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 15px;
+        }
+        
+        .search-container input {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 200px;
+        }
+        
+        .add-button {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 15px;
+        }
+        
+        .add-button button {
+            background-color: #2d4569;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        
+        .add-button button::before {
+            content: "+";
+            margin-right: 5px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        thead {
+            background-color: #f4f6f8;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        
+        th {
+            font-weight: 600;
+        }
+        
+        .treatment-name {
+            color: #3366cc;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+        
+        .pagination {
+            text-align: center;
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+        }
+        
+        .pagination a {
+            display: inline-block;
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            color: #333;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        
+        .pagination a.active {
+            background-color: #2d4569;
+            color: white;
+            border-color: #2d4569;
+        }
+        
+        .pagination a:hover:not(.active) {
+            background-color: #f4f6f8;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="sidebar">
+        <a href="#">Dashboard</a>
+        <a href="#">Patient Management</a>
+        <a href="{{ url_for('user_management') }}">User Management</a>
+        <a href="{{ url_for('appointment') }}">Appointment</a>
+        <a href="#">Transactions</a>
+        <a href="#" class="active">Treatments</a>
+        <a href="#">Dental Cases</a>
+        <a href="#">Settings</a>
+    </div>
+    
+    <div class="header">
+        <div class="header-title">Admin | Treatments</div>
+        <div class="header-icons">
+            <span>🔔</span>
+            <span>👤</span>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="container">
+            <h2>Orthocare List of Treatments</h2>
+            
+            <div class="search-container">
+                <input type="text" placeholder="Search...">
+            </div>
+            
+            <div class="add-button">
+                <button>New Treatment</button>
+            </div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Treatment</th>
+                        <th>Description</th>
+                        <th>No. of Sessions</th>
+                        <th>Estimated Duration</th>
+                        <th>Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="treatment-name">Oral Prophylaxis</td>
+                        <td>Deep cleaning procedure to remove plaque and tartar</td>
+                        <td>1 to 2 sessions</td>
+                        <td>1 - 2 hours</td>
+                        <td>P5,000</td>
+                    </tr>
+                    <tr>
+                        <td class="treatment-name">Veneers</td>
+                        <td>Thin, custom-made shells that cover the front surface of teeth to improve appearance</td>
+                        <td>3 to 4 sessions</td>
+                        <td>3 - 4 hours</td>
+                        <td>P5,000</td>
+                    </tr>
+                    <tr>
+                        <td class="treatment-name">Inlays & Onlays</td>
+                        <td>Alternative to traditional fillings to restore teeth with mild to moderate decay</td>
+                        <td>2 sessions</td>
+                        <td>15 - 30 minutes</td>
+                        <td>P6,000</td>
+                    </tr>
+                    <tr>
+                        <td class="treatment-name">Fillings</td>
+                        <td>Restoring decayed, cracked, and fractured teeth with composite or amalgam materials</td>
+                        <td>1 session</td>
+                        <td>An hour or less</td>
+                        <td>P6,000</td>
+                    </tr>
+                    <tr>
+                        <td class="treatment-name">Root Canal Therapy</td>
+                        <td>Procedure to save an infected or severely damaged tooth by removing the pulp</td>
+                        <td>1 to 2 sessions</td>
+                        <td>90 min - 3 hours</td>
+                        <td>P5,000</td>
+                    </tr>
+                    <tr>
+                        <td class="treatment-name">Dentures</td>
+                        <td>Removable replacement for missing teeth and surrounding tissues</td>
+                        <td>4 to 5 sessions</td>
+                        <td>30 min-half an hour</td>
+                        <td>P5,000</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="pagination">
+                <a href="#">&lt;&lt;</a>
+                <a href="#" class="active">1</a>
+                <a href="#">2</a>
+                <a href="#">&gt;&gt;</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

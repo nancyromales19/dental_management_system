@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orthocare - Appointments</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f4f6f8;
+    }
+
+    .sidebar {
+      width: 250px;
+      background-color: #2d4569;
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      color: white;
+      z-index: 200;
+    }
+
+    .sidebar a {
+      display: block;
+      padding: 15px 20px;
+      color: white;
+      text-decoration: none;
+      border-left: 4px solid transparent;
+    }
+
+    .sidebar a:hover,
+    .sidebar a.active {
+      background-color: #1f324d;
+      border-left: 4px solid #92b4d3;
+    }
+
+    .header {
+      background-color: #2d4569;
+      color: white;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      position: fixed;
+      top: 0;
+      right: 0;
+      left: 250px;
+      z-index: 100;
+      height: 50px;
+    }
+
+    .header-title {
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .header-icons {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .main-content {
+      margin-left: 250px;
+      padding: 70px 20px 20px 20px;
+    }
+
+    .container {
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-top: 20px;
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 24px;
+      font-weight: 600;
+      color: #2d4569;
+    }
+
+    .top-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .top-buttons button {
+      background-color: #2d4569;
+      color: white;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .top-buttons button:hover {
+      background-color: #1f324d;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead {
+      background-color: #2d4569;
+      color: white;
+    }
+
+    th, td {
+      padding: 12px 15px;
+      border: 1px solid #ccc;
+      text-align: left;
+    }
+
+    .status-approved {
+      color: green;
+      font-weight: bold;
+    }
+
+    .status-cancelled {
+      color: red;
+      font-weight: bold;
+    }
+
+    .pagination {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .pagination a {
+      display: inline-block;
+      padding: 8px 12px;
+      margin: 0 5px;
+      border: 1px solid #2d4569;
+      color: #2d4569;
+      text-decoration: none;
+      border-radius: 5px;
+    }
+
+    .pagination a.active,
+    .pagination a:hover {
+      background-color: #2d4569;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="sidebar">
+    <a href="#">Dashboard</a>
+    <a href="#">Patient Management</a>
+    <a href="#">User Management</a>
+    <a href="#" class="active">Appointment</a>
+    <a href="#">Transactions</a>
+    <a href="#">Treatments</a>
+    <a href="#">Dental Cases</a>
+    <a href="#">Settings</a>
+  </div>
+
+  <div class="header">
+    <div class="header-title">Admin | Appointments</div>
+    <div class="header-icons">
+      <span>🔔</span>
+      <span>👤</span>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <div class="container">
+      <h2>List of Appointments</h2>
+
+      <div class="top-buttons">
+        <button>Sort by</button>
+        <button>Generate Report</button>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>PATIENT NAME</th>
+            <th>ASSIGNED DENTIST</th>
+            <th>STAFF</th>
+            <th>TIME OF APPT.</th>
+            <th>DATE OF APPT.</th>
+            <th>STATUS</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Nancy Romales</td>
+            <td>Dr. Maria Fedilga</td>
+            <td>Barbie Forteza</td>
+            <td>3:30 pm</td>
+            <td>25-05-01</td>
+            <td class="status-approved">APPROVED</td>
+          </tr>
+          <tr>
+            <td>Gary Araneta</td>
+            <td>Dr. Juanito Vince</td>
+            <td>Maria Clara</td>
+            <td>3:30 pm</td>
+            <td>25-05-01</td>
+            <td class="status-approved">APPROVED</td>
+          </tr>
+          <tr>
+            <td>Marilou Lacayon</td>
+            <td>Dr. John Paul</td>
+            <td>Barbie Forteza</td>
+            <td>3:30 pm</td>
+            <td>25-05-01</td>
+            <td class="status-approved">APPROVED</td>
+          </tr>
+          <tr>
+            <td>Ton Wenceslao</td>
+            <td>Dr. Kent Sogado</td>
+            <td>Barbie Forteza</td>
+            <td>3:30 pm</td>
+            <td>25-05-01</td>
+            <td class="status-cancelled">CANCELLED</td>
+          </tr>
+          <tr>
+            <td>Claudine Rizal</td>
+            <td>Dr. Jose Rizal</td>
+            <td>Barbie Forteza</td>
+            <td>3:30 pm</td>
+            <td>25-05-01</td>
+            <td class="status-approved">APPROVED</td>
+          </tr>
+          <tr>
+            <td>Jacob Montemar</td>
+            <td>Dr. Jherick Isokh</td>
+            <td>Barbie Forteza</td>
+            <td>3:30 pm</td>
+            <td>25-05-01</td>
+            <td class="status-cancelled">CANCELLED</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="pagination">
+        <a href="#">&laquo;</a>
+        <a href="#" class="active">1</a>
+        <a href="#">2</a>
+        <a href="#">&raquo;</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orthocare - Patient Management</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+        }
+        
+        .header {
+            background-color: #2d4569;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: fixed;
+            top: 0;
+            right: 0;
+            left: 250px; /* Make space for sidebar */
+            z-index: 100;
+            height: 50px;
+        }
+        
+        .header-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .header-icons {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .sidebar {
+            width: 250px;
+            background-color: #2d4569;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            color: white;
+            z-index: 200;
+        }
+        
+        .sidebar a {
+            display: block;
+            padding: 15px 20px;
+            color: white;
+            text-decoration: none;
+            border-left: 4px solid transparent;
+        }
+        
+        .sidebar a:hover,
+        .sidebar a.active {
+            background-color: #1f324d;
+            border-left: 4px solid #92b4d3;
+        }
+        
+        .main-content {
+            margin-left: 250px;
+            padding: 70px 20px 20px 20px; /* Add top padding to account for header */
+            background-color: #dfe3e8;
+            min-height: 100vh;
+        }
+        
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            padding: 20px 0;
+        }
+        
+        .logo {
+            max-width: 180px;
+        }
+        
+        .search-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+        }
+        
+        .search-input {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 200px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        th {
+            background-color: #2d4569;
+            color: white;
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        tr:hover {
+            background-color: #f9f9f9;
+        }
+        
+        .status {
+            font-weight: bold;
+        }
+        
+        .status-active {
+            color: green;
+        }
+        
+        .status-deactivated {
+            color: red;
+        }
+        
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            gap: 5px;
+        }
+        
+        .pagination-btn {
+            padding: 5px 10px;
+            background-color: #2d4569;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .pagination-btn.active {
+            background-color: #1f324d;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="sidebar">
+        <a href="#">Dashboard</a>
+        <a href="#" class="active">Patient Management</a>
+        <a href="{{ url_for('user_management') }}">User Management</a>
+        <a href="{{ url_for('appointment') }}">Appointment</a>
+        <a href="#">Transactions</a>
+        <a href="#">Treatments</a>
+        <a href="#">Dental Cases</a>
+        <a href="#">Settings</a>
+    </div>
+    
+    <div class="header">
+        <div class="header-title">Admin | Patient Management</div>
+        <div class="header-icons">
+            <span>🔔</span>
+            <span>👤</span>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="logo-container">
+            <img src="https://via.placeholder.com/180x80?text=ORTHOCARE" alt="Orthocare Logo" class="logo">
+        </div>
+        
+        <div class="search-container">
+            <input type="text" placeholder="Search..." class="search-input">
+        </div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>LASTNAME</th>
+                    <th>FIRSTNAME</th>
+                    <th>CONTACT NO.</th>
+                    <th>EMAIL ADDRESS</th>
+                    <th>STATUS</th>
+                    <th>ACTION</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Romales</td>
+                    <td>Nancy</td>
+                    <td>09123456012</td>
+                    <td>nancy@email.com</td>
+                    <td class="status status-active">ACTIVE</td>
+                    <td class="action-buttons">⋮⋮⋮</td>
+                </tr>
+                <tr>
+                    <td>Araneta</td>
+                    <td>Juanito Vince</td>
+                    <td>09123456012</td>
+                    <td>juan@email.com</td>
+                    <td class="status status-active">ACTIVE</td>
+                    <td class="action-buttons">⋮⋮⋮</td>
+                </tr>
+                <tr>
+                    <td>Lacayon</td>
+                    <td>John Paul</td>
+                    <td>09123456012</td>
+                    <td>paul@email.com</td>
+                    <td class="status status-deactivated">DEACTIVATED</td>
+                    <td class="action-buttons">⋮⋮⋮</td>
+                </tr>
+                <tr>
+                    <td>Wenceslao</td>
+                    <td>Kent</td>
+                    <td>09123456012</td>
+                    <td>N/A</td>
+                    <td class="status status-active">ACTIVE</td>
+                    <td class="action-buttons">⋮⋮⋮</td>
+                </tr>
+                <tr>
+                    <td>Rizal</td>
+                    <td>Jose</td>
+                    <td>09123456012</td>
+                    <td>N/A</td>
+                    <td class="status status-active">ACTIVE</td>
+                    <td class="action-buttons">⋮⋮⋮</td>
+                </tr>
+                <tr>
+                    <td>Montemar</td>
+                    <td>Jherick Isaiah</td>
+                    <td>09123456012</td>
+                    <td>N/A</td>
+                    <td class="status status-active">ACTIVE</td>
+                    <td class="action-buttons">⋮⋮⋮</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="pagination">
+            <button class="pagination-btn">«</button>
+            <button class="pagination-btn active">1</button>
+            <button class="pagination-btn">2</button>
+            <button class="pagination-btn">»</button>
+        </div>
+    </div>
+</body>
+</html>
