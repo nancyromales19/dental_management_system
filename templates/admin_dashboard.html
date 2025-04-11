@@ -164,11 +164,11 @@
 <body>
     <div class="sidebar">
         <a href="#" class="active">Dashboard</a>
-        <a href="#">Patient Management</a>
-        <a href="{{ url_for('user_management') }}">User Management</a>
-        <a href="{{ url_for('appointment') }}">Appointment</a>
+        <a href="admin_patient_management.html">Patient Management</a>
+        <a href="{{ url_for('admin_user_management') }}">User Management</a>
+        <a href="#">Appointment</a>
         <a href="#">Transactions</a>
-        <a href="#">Treatments</a>
+        <a href="{{ url_for('admin_treatments') }}">Treatments</a>
         <a href="#">Dental Cases</a>
         <a href="#">Settings</a>
     </div>
@@ -189,7 +189,7 @@
                     <div class="report-filter">Daily ▼</div>
                 </div>
                 
-                <!-- Empty space for report content -->
+                
                 <div style="height: 250px;"></div>
                 
                 <div style="text-align: right; margin-top: 20px;">
@@ -200,13 +200,13 @@
             <div>
                 <div class="report-section">
                     <div class="report-title">Summary Report</div>
-                    <!-- Empty space for summary content -->
+                    
                     <div style="height: 120px;"></div>
                 </div>
                 
                 <div class="report-section" style="margin-top: 20px;">
                     <div class="report-title">Detailed Report</div>
-                    <!-- Empty space for detailed report -->
+                    
                     <div style="height: 120px;"></div>
                 </div>
             </div>

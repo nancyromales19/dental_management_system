@@ -264,7 +264,7 @@
             margin-top: 20px;
         }
         
-        .btn-add {
+        .btn-add, .btn-update {
             background-color: #2d4569;
             color: white;
             padding: 8px 20px;
@@ -274,22 +274,59 @@
             font-weight: 500;
         }
         
-        .btn-add:hover {
+        .btn-add:hover, .btn-update:hover {
             background-color: #1f324d;
+        }
+        
+        /* Loading spinner */
+        .spinner {
+            display: none;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #2d4569;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .alert {
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="sidebar">
-        <a href="#">Dashboard</a>
+        <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
         <a href="#">Patient Management</a>
-        <a href="{{ url_for('user_management') }}">User Management</a>
-        <a href="{{ url_for('appointment') }}">Appointment</a>
+        <a href="{{ url_for('admin_user_management') }}">User Management</a>
+        <a href="#">Appointment</a>
         <a href="#">Transactions</a>
         <a href="#" class="active">Treatments</a>
         <a href="#">Dental Cases</a>
         <a href="#">Settings</a>
+        <a href="{{ url_for('logout') }}">Logout</a>
     </div>
     
     <div class="header">
@@ -304,13 +341,17 @@
         <div class="container">
             <h2>Orthocare List of Treatments</h2>
             
+            <div id="alert" class="alert"></div>
+            
             <div class="search-container">
-                <input type="text" placeholder="Search...">
+                <input type="text" id="searchInput" placeholder="Search treatments...">
             </div>
             
             <div class="add-button">
-                <button id="openModalBtn">New Treatment</button>
+                <button id="openAddModalBtn">New Treatment</button>
             </div>
+            
+            <div id="spinner" class="spinner"></div>
             
             <table>
                 <thead>
@@ -322,94 +363,50 @@
                         <th>Price</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr>
-                        <td class="treatment-name">Oral Prophylaxis</td>
-                        <td>Deep cleaning procedure to remove plaque and tartar</td>
-                        <td>1 to 2 sessions</td>
-                        <td>1 - 2 hours</td>
-                        <td>P5,000</td>
-                    </tr>
-                    <tr>
-                        <td class="treatment-name">Veneers</td>
-                        <td>Thin, custom-made shells that cover the front surface of teeth to improve appearance</td>
-                        <td>3 to 4 sessions</td>
-                        <td>3 - 4 hours</td>
-                        <td>P5,000</td>
-                    </tr>
-                    <tr>
-                        <td class="treatment-name">Inlays & Onlays</td>
-                        <td>Alternative to traditional fillings to restore teeth with mild to moderate decay</td>
-                        <td>2 sessions</td>
-                        <td>15 - 30 minutes</td>
-                        <td>P6,000</td>
-                    </tr>
-                    <tr>
-                        <td class="treatment-name">Fillings</td>
-                        <td>Restoring decayed, cracked, and fractured teeth with composite or amalgam materials</td>
-                        <td>1 session</td>
-                        <td>An hour or less</td>
-                        <td>P6,000</td>
-                    </tr>
-                    <tr>
-                        <td class="treatment-name">Root Canal Therapy</td>
-                        <td>Procedure to save an infected or severely damaged tooth by removing the pulp</td>
-                        <td>1 to 2 sessions</td>
-                        <td>90 min - 3 hours</td>
-                        <td>P5,000</td>
-                    </tr>
-                    <tr>
-                        <td class="treatment-name">Dentures</td>
-                        <td>Removable replacement for missing teeth and surrounding tissues</td>
-                        <td>4 to 5 sessions</td>
-                        <td>30 min-half an hour</td>
-                        <td>P5,000</td>
-                    </tr>
+                <tbody id="treatmentsTable">
+                    
                 </tbody>
             </table>
             
-            <div class="pagination">
-                <a href="#">&lt;&lt;</a>
-                <a href="#" class="active">1</a>
-                <a href="#">2</a>
-                <a href="#">&gt;&gt;</a>
+            <div class="pagination" id="pagination">
+               
             </div>
         </div>
     </div>
     
-    <!-- Modal -->
-    <div id="treatmentModal" class="modal">
+    
+    <div id="addTreatmentModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
                 <div class="modal-title">New Treatment</div>
-                <span class="close">&times;</span>
+                <span class="close" id="closeAddModal">&times;</span>
             </div>
-            <form id="treatmentForm">
+            <form id="addTreatmentForm">
                 <div class="form-row">
                     <div class="form-group">
                         <label for="treatmentName">Treatment</label>
-                        <input type="text" id="treatmentName" name="treatmentName">
+                        <input type="text" id="treatmentName" name="treatmentName" required>
                     </div>
                     <div class="form-group">
                         <label for="estimatedDuration">Estimated Duration</label>
-                        <input type="text" id="estimatedDuration" name="estimatedDuration">
+                        <input type="text" id="estimatedDuration" name="estimatedDuration" required placeholder="e.g. 1-2 hours">
                     </div>
                     <div class="form-group">
                         <label for="noOfSessions">No. of Sessions</label>
-                        <input type="text" id="noOfSessions" name="noOfSessions">
+                        <input type="text" id="noOfSessions" name="noOfSessions" required>
                     </div>
                 </div>
                 
                 <div class="form-row">
                     <div class="form-group">
                         <label for="treatmentPrice">Treatment Price</label>
-                        <input type="text" id="treatmentPrice" name="treatmentPrice">
+                        <input type="text" id="treatmentPrice" name="treatmentPrice" required placeholder="e.g. 5000">
                     </div>
                 </div>
                 
                 <div class="form-group">
                     <label for="description">Description</label>
-                    <textarea id="description" name="description"></textarea>
+                    <textarea id="description" name="description" required></textarea>
                 </div>
                 
                 <div class="modal-footer">
@@ -419,60 +416,346 @@
         </div>
     </div>
     
+   
+    <div id="editTreatmentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Edit Treatment</div>
+                <span class="close" id="closeEditModal">&times;</span>
+            </div>
+            <form id="editTreatmentForm">
+                <input type="hidden" id="editTreatmentId" name="treatmentId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editTreatmentName">Treatment</label>
+                        <input type="text" id="editTreatmentName" name="treatmentName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editEstimatedDuration">Estimated Duration</label>
+                        <input type="text" id="editEstimatedDuration" name="estimatedDuration" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editNoOfSessions">No. of Sessions</label>
+                        <input type="text" id="editNoOfSessions" name="noOfSessions" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editTreatmentPrice">Treatment Price</label>
+                        <input type="text" id="editTreatmentPrice" name="treatmentPrice" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editDescription">Description</label>
+                    <textarea id="editDescription" name="description" required></textarea>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="submit" class="btn-update">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
     <script>
-        // Get the modal
-        const modal = document.getElementById("treatmentModal");
         
-        // Get the button that opens the modal
-        const btn = document.getElementById("openModalBtn");
+        const addModal = document.getElementById("addTreatmentModal");
+        const editModal = document.getElementById("editTreatmentModal");
+        const openAddModalBtn = document.getElementById("openAddModalBtn");
+        const closeAddModalBtn = document.getElementById("closeAddModal");
+        const closeEditModalBtn = document.getElementById("closeEditModal");
+        const addTreatmentForm = document.getElementById("addTreatmentForm");
+        const editTreatmentForm = document.getElementById("editTreatmentForm");
+        const treatmentsTable = document.getElementById("treatmentsTable");
+        const searchInput = document.getElementById("searchInput");
+        const spinner = document.getElementById("spinner");
+        const alert = document.getElementById("alert");
         
-        // Get the <span> element that closes the modal
-        const span = document.getElementsByClassName("close")[0];
         
-        // When the user clicks the button, open the modal 
-        btn.onclick = function() {
-            modal.style.display = "block";
+        let currentPage = 1;
+        let treatmentsPerPage = 10;
+        let allTreatments = [];
+        let filteredTreatments = [];
+        
+        
+        function formatPrice(price) {
+            return `P${parseFloat(price).toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
         }
         
-        // When the user clicks on <span> (x), close the modal
-        span.onclick = function() {
-            modal.style.display = "none";
+       
+        function showSpinner() {
+            spinner.style.display = "block";
         }
         
-        // When the user clicks anywhere outside of the modal, close it
-        window.onclick = function(event) {
-            if (event.target == modal) {
-                modal.style.display = "none";
+        function hideSpinner() {
+            spinner.style.display = "none";
+        }
+        
+      
+        function showAlert(message, type) {
+            alert.textContent = message;
+            alert.className = `alert alert-${type}`;
+            alert.style.display = "block";
+            
+       
+            setTimeout(() => {
+                alert.style.display = "none";
+            }, 3000);
+        }
+        
+        
+        async function fetchTreatments() {
+            showSpinner();
+            try {
+                const response = await fetch('/api/treatments');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch treatments');
+                }
+                
+                const data = await response.json();
+                allTreatments = data.treatments;
+                filteredTreatments = [...allTreatments];
+                displayTreatments();
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Failed to load treatments', 'danger');
+            } finally {
+                hideSpinner();
             }
         }
         
-        // Handle form submission
-        document.getElementById("treatmentForm").addEventListener("submit", function(e) {
+      
+        function displayTreatments() {
+            const treatments = filteredTreatments;
+            const startIndex = (currentPage - 1) * treatmentsPerPage;
+            const endIndex = startIndex + treatmentsPerPage;
+            const currentTreatments = treatments.slice(startIndex, endIndex);
+            
+          
+            treatmentsTable.innerHTML = '';
+            
+            if (currentTreatments.length === 0) {
+                const noDataRow = document.createElement('tr');
+                noDataRow.innerHTML = `<td colspan="5" style="text-align: center;">No treatments found</td>`;
+                treatmentsTable.appendChild(noDataRow);
+            } else {
+             
+                currentTreatments.forEach(treatment => {
+                    const row = document.createElement('tr');
+                    
+                    row.innerHTML = `
+                        <td class="treatment-name" data-id="${treatment.TREATMENT_ID}">${treatment.TREATMENT_TYPE}</td>
+                        <td>${treatment.TREATMENT_DESC}</td>
+                        <td>${treatment.NO_OF_SESSIONS} ${treatment.NO_OF_SESSIONS > 1 ? 'sessions' : 'session'}</td>
+                        <td>${treatment.ESTIMATED_DURATION}</td>
+                        <td>${formatPrice(treatment.TREATMENT_PRICE)}</td>
+                    `;
+                    
+                    treatmentsTable.appendChild(row);
+                });
+            }
+            
+            
+            updatePagination();
+            
+          
+            document.querySelectorAll('.treatment-name').forEach(treatmentName => {
+                treatmentName.addEventListener('click', function() {
+                    const treatmentId = this.getAttribute('data-id');
+                    openEditModal(treatmentId);
+                });
+            });
+        }
+        
+        
+        function updatePagination() {
+            const totalPages = Math.ceil(filteredTreatments.length / treatmentsPerPage);
+            const pagination = document.getElementById('pagination');
+            
+            pagination.innerHTML = '';
+            
+           
+            const prevLink = document.createElement('a');
+            prevLink.href = '#';
+            prevLink.textContent = '<<';
+            prevLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (currentPage > 1) {
+                    currentPage--;
+                    displayTreatments();
+                }
+            });
+            pagination.appendChild(prevLink);
+            
+        
+            for (let i = 1; i <= totalPages; i++) {
+                const pageLink = document.createElement('a');
+                pageLink.href = '#';
+                pageLink.textContent = i;
+                if (i === currentPage) {
+                    pageLink.classList.add('active');
+                }
+                pageLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    currentPage = i;
+                    displayTreatments();
+                });
+                pagination.appendChild(pageLink);
+            }
+            
+           
+            const nextLink = document.createElement('a');
+            nextLink.href = '#';
+            nextLink.textContent = '>>';
+            nextLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    displayTreatments();
+                }
+            });
+            pagination.appendChild(nextLink);
+        }
+        
+      
+        function filterTreatments() {
+            const searchTerm = searchInput.value.toLowerCase();
+            
+            if (searchTerm.trim() === '') {
+                filteredTreatments = [...allTreatments];
+            } else {
+                filteredTreatments = allTreatments.filter(treatment => 
+                    treatment.TREATMENT_TYPE.toLowerCase().includes(searchTerm) || 
+                    treatment.TREATMENT_DESC.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            currentPage = 1; 
+            displayTreatments();
+        }
+        
+     
+        async function openEditModal(treatmentId) {
+            showSpinner();
+            try {
+                const response = await fetch(`/api/treatments/${treatmentId}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch treatment details');
+                }
+                
+                const data = await response.json();
+                const treatment = data.treatment;
+                
+          
+                document.getElementById('editTreatmentId').value = treatment.TREATMENT_ID;
+                document.getElementById('editTreatmentName').value = treatment.TREATMENT_TYPE;
+                document.getElementById('editNoOfSessions').value = treatment.NO_OF_SESSIONS;
+                document.getElementById('editDescription').value = treatment.TREATMENT_DESC;
+                document.getElementById('editEstimatedDuration').value = treatment.ESTIMATED_DURATION;
+                document.getElementById('editTreatmentPrice').value = treatment.TREATMENT_PRICE;
+                
+    
+                editModal.style.display = 'block';
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Failed to load treatment details', 'danger');
+            } finally {
+                hideSpinner();
+            }
+        }
+        
+    
+        async function submitAddTreatmentForm(e) {
             e.preventDefault();
             
-            // Here you would typically collect the form data and send it to your backend
-            // For example:
-            const treatmentName = document.getElementById("treatmentName").value;
-            const estimatedDuration = document.getElementById("estimatedDuration").value;
-            const noOfSessions = document.getElementById("noOfSessions").value;
-            const treatmentPrice = document.getElementById("treatmentPrice").value;
-            const description = document.getElementById("description").value;
+            const formData = new FormData(addTreatmentForm);
             
-            console.log({
-                treatmentName,
-                estimatedDuration,
-                noOfSessions,
-                treatmentPrice,
-                description
-            });
+            showSpinner();
+            try {
+                const response = await fetch('/api/treatments/add', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('Treatment added successfully', 'success');
+                    addTreatmentForm.reset();
+                    addModal.style.display = 'none';
+                    fetchTreatments();
+                } else {
+                    showAlert(data.message || 'Failed to add treatment', 'danger');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Failed to add treatment', 'danger');
+            } finally {
+                hideSpinner();
+            }
+        }
+        
+    
+        async function submitEditTreatmentForm(e) {
+            e.preventDefault();
             
-            // Close the modal after submission
-            modal.style.display = "none";
+            const treatmentId = document.getElementById('editTreatmentId').value;
+            const formData = new FormData(editTreatmentForm);
             
-            // You might want to refresh the table or add the new treatment to it
-            // For now, we'll just reset the form
-            document.getElementById("treatmentForm").reset();
+            showSpinner();
+            try {
+                const response = await fetch(`/api/treatments/update/${treatmentId}`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('Treatment updated successfully', 'success');
+                    editModal.style.display = 'none';
+                    fetchTreatments(); 
+                } else {
+                    showAlert(data.message || 'Failed to update treatment', 'danger');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Failed to update treatment', 'danger');
+            } finally {
+                hideSpinner();
+            }
+        }
+        
+  
+        window.addEventListener('load', fetchTreatments);
+        
+        openAddModalBtn.addEventListener('click', function() {
+            addModal.style.display = 'block';
         });
+        
+        closeAddModalBtn.addEventListener('click', function() {
+            addModal.style.display = 'none';
+        });
+        
+        closeEditModalBtn.addEventListener('click', function() {
+            editModal.style.display = 'none';
+        });
+        
+        window.addEventListener('click', function(event) {
+            if (event.target === addModal) {
+                addModal.style.display = 'none';
+            }
+            if (event.target === editModal) {
+                editModal.style.display = 'none';
+            }
+        });
+        
+        addTreatmentForm.addEventListener('submit', submitAddTreatmentForm);
+        editTreatmentForm.addEventListener('submit', submitEditTreatmentForm);
+        
+        searchInput.addEventListener('input', filterTreatments);
     </script>
 </body>
 </html>

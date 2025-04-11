@@ -341,17 +341,82 @@
       position: relative;
       z-index: 1;
     }
+
+    /* Credentials Modal */
+    .credentials-container {
+      background-color: #f4f6f8;
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 15px;
+    }
+
+    .credentials-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .credentials-label {
+      font-weight: bold;
+      color: #2d4569;
+    }
+
+    .credentials-value {
+      font-family: monospace;
+      background-color: #fff;
+      padding: 5px 10px;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+      flex-grow: 1;
+      margin-left: 10px;
+    }
+
+    .copy-btn {
+      background-color: #00acc1;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 5px 10px;
+      margin-left: 10px;
+      cursor: pointer;
+    }
+
+    .copy-btn:hover {
+      background-color: #0097a7;
+    }
+
+    .no-display {
+      display: none;
+    }
+
+    /* Tab content styles */
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+
+    /* No results message */
+    .no-results {
+      text-align: center;
+      padding: 20px;
+      color: #666;
+      font-style: italic;
+    }
   </style>
 </head>
 <body>
 
   <div class="sidebar">
-    <a href="#">Dashboard</a>
+    <a href="{{url_for('admin_dashboard')}}">Dashboard</a>
     <a href="#">Patient Management</a>
     <a href="#" class="active">User Management</a>
     <a href="#">Appointment</a>
     <a href="#">Transactions</a>
-    <a href="#">Treatments</a>
+    <a href="{{ url_for('admin_treatments') }}">Treatments</a>
     <a href="#">Dental Cases</a>
     <a href="#">Settings</a>
   </div>
@@ -370,115 +435,52 @@
 
       <div class="top-buttons">
         <div class="search-bar">
-          <input type="text" placeholder="Search..." class="search-input">
+          <input type="text" placeholder="Search..." class="search-input" id="searchInput">
         </div>
-        <button>+ Add New User</button>
+        <button id="addUserBtn">+ Add New User</button>
       </div>
 
       <div class="tabs">
-        <button class="tab-button active">Dentist(s)</button>
-        <button class="tab-button">Staff(s)</button>
+        <button class="tab-button active" data-tab="dentists-tab">Dentist(s)</button>
+        <button class="tab-button" data-tab="staff-tab">Staff(s)</button>
       </div>
 
-      <table>
-        <thead>
-          <tr>
-            <th>LASTNAME</th>
-            <th>FIRSTNAME</th>
-            <th>CONTACT NO.</th>
-            <th>EMAIL ADDRESS</th>
-            <th>SPECIALIZATION</th>
-            <th>ACTION</th>
-          </tr>
-        </thead>
-        <tbody>Get-ChildItem "C:\Users\Administrator\Desktop"
+      <div id="dentists-tab" class="tab-content active">
+        <table id="dentistsTable">
+          <thead>
+            <tr>
+              <th>LASTNAME</th>
+              <th>FIRSTNAME</th>
+              <th>CONTACT NO.</th>
+              <th>EMAIL ADDRESS</th>
+              <th>SPECIALIZATION</th>
+              <th>ACTION</th>
+            </tr>
+          </thead>
+          <tbody id="dentistsTableBody">
+            <!-- Dentist data will be dynamically loaded here -->
+          </tbody>
+        </table>
+        <div id="noDentistsResults" class="no-results no-display">No dentists found</div>
+      </div>
 
-          <tr>
-            <td>Romales</td>
-            <td>Nancy</td>
-            <td>09310159072</td>
-            <td>nancyr@mail.com</td>
-            <td>Oral Surgery</td>
-            <td class="action-cell">
-              <div class="action-dots" onclick="toggleDropdown(this)">...</div>
-              <div class="dropdown-content">
-                <a href="#" onclick="openUserModal(1)">View Details</a>
-                <a href="#" class="deactivate-link">Deactivate</a>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td>Araneta</td>
-            <td>Juanito Vince</td>
-            <td>08310159072</td>
-            <td>araneta@mail.com</td>
-            <td>Pediatric Dentistry</td>
-            <td class="action-cell">
-              <div class="action-dots" onclick="toggleDropdown(this)">...</div>
-              <div class="dropdown-content">
-                <a href="#" onclick="openUserModal(2)">View Details</a>
-                <a href="#" class="deactivate-link">Deactivate</a>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td>Lacayon</td>
-            <td>John Paul</td>
-            <td>09310159072</td>
-            <td>jplacayon@mail.com</td>
-            <td>Prosthodontics</td>
-            <td class="action-cell">
-              <div class="action-dots" onclick="toggleDropdown(this)">...</div>
-              <div class="dropdown-content">
-                <a href="#" onclick="openUserModal(3)">View Details</a>
-                <a href="#" class="deactivate-link">Deactivate</a>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td>Wenceslao</td>
-            <td>Kent</td>
-            <td>09310159072</td>
-            <td>N/A</td>
-            <td>Endodontics</td>
-            <td class="action-cell">
-              <div class="action-dots" onclick="toggleDropdown(this)">...</div>
-              <div class="dropdown-content">
-                <a href="#" onclick="openUserModal(4)">View Details</a>
-                <a href="#" class="deactivate-link">Deactivate</a>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td>Rizal</td>
-            <td>Jose</td>
-            <td>09310159072</td>
-            <td>N/A</td>
-            <td>Orthodontics</td>
-            <td class="action-cell">
-              <div class="action-dots" onclick="toggleDropdown(this)">...</div>
-              <div class="dropdown-content">
-                <a href="#" onclick="openUserModal(5)">View Details</a>
-                <a href="#" class="deactivate-link">Deactivate</a>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td>Montemar</td>
-            <td>Jherick Isokh</td>
-            <td>09310159072</td>
-            <td>N/A</td>
-            <td>Oral Pathology</td>
-            <td class="action-cell">
-              <div class="action-dots" onclick="toggleDropdown(this)">...</div>
-              <div class="dropdown-content">
-                <a href="#" onclick="openUserModal(6)">View Details</a>
-                <a href="#" class="deactivate-link">Deactivate</a>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <div id="staff-tab" class="tab-content">
+        <table id="staffTable">
+          <thead>
+            <tr>
+              <th>LASTNAME</th>
+              <th>FIRSTNAME</th>
+              <th>CONTACT NO.</th>
+              <th>EMAIL ADDRESS</th>
+              <th>ACTION</th>
+            </tr>
+          </thead>
+          <tbody id="staffTableBody">
+            <!-- Staff data will be dynamically loaded here -->
+          </tbody>
+        </table>
+        <div id="noStaffResults" class="no-results no-display">No staff found</div>
+      </div>
 
       <div class="pagination">
         <a href="#">&laquo;</a>
@@ -494,23 +496,26 @@
     <div class="modal-content">
       <span class="close-button" onclick="closeUserModal()">&times;</span>
       <div class="modal-header">
-        <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgIDxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjQ1IiBmaWxsPSIjZTBlMGUwIi8+CiAgICA8Y2lyY2xlIGN4PSI1MCIgY3k9IjQwIiByPSIxNSIgZmlsbD0iIzhjOGM4YyIvPgogICAgPHBhdGggZD0iTTI1LDcwIEMyNSw1NSA3NSw1NSA3NSw3MCBDNZUFTRUJBTEQNZUFTRUJBTEBNMPU4MCBMNzUuODAgQzc1LDkwIDI1LDkwIDI1LDgwIFoiIGZpbGw9IiM4YzhjOGMiLz4KPC9zdmc+" alt="User Profile" class="user-profile-pic">
+        <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgIDxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjQ1IiBmaWxsPSIjZTBlMGUwIi8+CiAgICA8Y2lyY2xlIGN4PSI1MCIgY3k9IjQwIiByPSIxNSIgZmlsbD0iIzhjOGM4YyIvPgogICAgPHBhdGggZD0iTTI1LDcwIEMyNSw1NSA3NSw1NSA3NSw3MCBDNZUFTRUJBTEQNZUFTRUJBTEBNMPU4MCBMNzUuODAgQzc1LDkwIDI1LDkwIDI1LDgwIFoiIGZpbGw9IiM4YzhjOGMiLz4KPC9zdmc+" alt="User Profile" class="user-profile-pic" id="userModalImage">
         <div class="user-details">
-          <div class="user-title">Dr. Maria Fedlliga</div>
-          <div class="user-specialization">Orthodontics</div>
+          <div class="user-title" id="userModalTitle">Dr. Maria Fedlliga</div>
+          <div class="user-specialization" id="userModalSpec">Orthodontics</div>
         </div>
       </div>
-      <div class="form-group">
-        <label for="emailAddress">Email address :</label>
-        <input type="email" id="emailAddress" class="form-control" value="maria@orthocare.com">
-      </div>
-      <div class="form-group">
-        <label for="contactNumber">Contact Number :</label>
-        <input type="text" id="contactNumber" class="form-control" value="09310159072">
-      </div>
-      <div class="modal-buttons">
-        <button class="modal-button primary">EDIT</button>
-      </div>
+      <form id="updateUserForm">
+        <input type="hidden" id="userIdField" name="userId" value="">
+        <div class="form-group">
+          <label for="emailAddress">Email address :</label>
+          <input type="email" id="emailAddress" class="form-control" value="">
+        </div>
+        <div class="form-group">
+          <label for="contactNumber">Contact Number :</label>
+          <input type="text" id="contactNumber" class="form-control" value="">
+        </div>
+        <div class="modal-buttons">
+          <button type="button" class="modal-button primary" id="editUserBtn">UPDATE</button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -520,7 +525,7 @@
       <span class="close-button" onclick="closeAddModal()">&times;</span>
       <h2 style="color: #2d4569; margin-bottom: 20px;">Add New User</h2>
       
-      <form id="addUserForm" method="POST" action="/add_user">
+      <form id="addUserForm">
         <div class="add-form-row">
           <div class="add-form-column">
             <div class="form-group">
@@ -540,13 +545,13 @@
           <div class="add-form-column">
             <div class="form-group">
               <label for="contactNumber">Contact Number:</label>
-              <input type="text" id="contactNumber" name="contactNumber" class="form-control" required>
+              <input type="text" id="addContactNumber" name="contactNumber" class="form-control" required>
             </div>
           </div>
           <div class="add-form-column">
             <div class="form-group">
               <label for="emailAddress">Email Address:</label>
-              <input type="email" id="emailAddress" name="emailAddress" class="form-control">
+              <input type="email" id="addEmailAddress" name="emailAddress" class="form-control">
             </div>
           </div>
         </div>
@@ -593,140 +598,419 @@
     </div>
   </div>
 
-  <script>
-    // Toggle dropdown menu for action buttons
-    function toggleDropdown(element) {
-      // Close all dropdowns first
-      var dropdowns = document.getElementsByClassName("dropdown-content");
-      for (var i = 0; i < dropdowns.length; i++) {
-        if (dropdowns[i].classList.contains('show')) {
-          dropdowns[i].classList.remove('show');
-        }
-      }
+  <!-- Credentials Modal -->
+  <div id="credentialsModal" class="modal">
+    <div class="modal-content">
+      <span class="close-button" onclick="closeCredentialsModal()">&times;</span>
+      <h2 style="color: #2d4569; margin-bottom: 20px;">User Credentials</h2>
       
-      // Show the clicked dropdown
-      var dropdown = element.nextElementSibling;
-      dropdown.classList.toggle("show");
-    }
+      <p style="margin-bottom: 15px;">New user account has been created successfully. Please save these credentials:</p>
+      
+      <div class="credentials-container">
+        <div class="credentials-row">
+          <span class="credentials-label">Username:</span>
+          <span id="generatedUsername" class="credentials-value"></span>
+          <button class="copy-btn" onclick="copyToClipboard('generatedUsername')">Copy</button>
+        </div>
+        <div class="credentials-row">
+          <span class="credentials-label">Password:</span>
+          <span id="generatedPassword" class="credentials-value"></span>
+          <button class="copy-btn" onclick="copyToClipboard('generatedPassword')">Copy</button>
+        </div>
+      </div>
+      
+      <div class="modal-buttons">
+        <button class="modal-button primary" onclick="closeCredentialsModal()">Close</button>
+      </div>
+    </div>
+  </div>
 
-    // Function to open user modal and populate with data from the table
-    function openUserModal(userId) {
-      // Get the modal element
-      const modal = document.getElementById('userModal');
-      
-      // Find the clicked row by using the userId as an index (adjusting for zero-based indexing)
-      const rows = document.querySelector('table tbody').rows;
-      const rowIndex = userId - 1;
-      
-      if (rowIndex >= 0 && rowIndex < rows.length) {
-        const row = rows[rowIndex];
-        
-        // Extract data from the row
-        const lastName = row.cells[0].textContent;
-        const firstName = row.cells[1].textContent;
-        const contactNumber = row.cells[2].textContent;
-        const email = row.cells[3].textContent;
-        const specialization = row.cells[4].textContent;
-        
-        // Populate the modal with data
-        const userTitle = document.querySelector('.user-title');
-        userTitle.textContent = `Dr. ${firstName} ${lastName}`;
-        
-        const userSpecialization = document.querySelector('.user-specialization');
-        userSpecialization.textContent = specialization;
-        
-        const emailInput = document.getElementById('emailAddress');
-        emailInput.value = email !== 'N/A' ? email : '';
-        
-        const contactInput = document.getElementById('contactNumber');
-        contactInput.value = contactNumber;
-        
-        // Display the modal
-        modal.style.display = 'flex';
-      }
-    }
-    
-    // Close User Modal
-    function closeUserModal() {
-      document.getElementById('userModal').style.display = 'none';
-    }
-    
-    // Open Add User Modal
-    function openAddModal() {
-      document.getElementById('addUserModal').style.display = 'flex';
-    }
-    
-    // Close Add User Modal
-    function closeAddModal() {
-      document.getElementById('addUserModal').style.display = 'none';
-    }
+<script>
+  
+let dentistsData = [];
+let staffData = [];
+let currentTab = 'dentists-tab';
 
-    // Show/Hide Specialization field based on user role
-    function showSpecializationField() {
-      const userRole = document.getElementById('userRole').value;
-      const specializationColumn = document.getElementById('specializationColumn');
-      const specializationSelect = document.getElementById('specialization');
-      
-      if (userRole === 'dentist') {
-        specializationColumn.style.display = 'block';
-        specializationSelect.setAttribute('required', 'required');
-      } else {
-        specializationColumn.style.display = 'none';
-        specializationSelect.removeAttribute('required');
-      }
-    }
 
-    // Close dropdowns and modals when clicking outside
-    window.onclick = function(event) {
-      // Close dropdowns when clicking outside
-      if (!event.target.matches('.action-dots')) {
-        var dropdowns = document.getElementsByClassName("dropdown-content");
-        for (var i = 0; i < dropdowns.length; i++) {
-          if (dropdowns[i].classList.contains('show')) {
-            dropdowns[i].classList.remove('show');
-          }
-        }
-      }
-      
-      // Close modals when clicking outside
-      const userModal = document.getElementById('userModal');
-      const addUserModal = document.getElementById('addUserModal');
-      
-      if (event.target == userModal) {
-        closeUserModal();
-      }
-      if (event.target == addUserModal) {
-        closeAddModal();
-      }
-    }
+document.addEventListener('DOMContentLoaded', function() {
+  loadUserData();
+  setupEventListeners();
+});
 
-    // Add event listener to "Add New User" button
-    document.querySelector('.top-buttons button').addEventListener('click', function() {
-      openAddModal();
-    });
-
-    // Add click event to Edit button in user modal
-    document.querySelector('.modal-button.primary').addEventListener('click', function() {
-      // Get the updated values
-      const email = document.getElementById('emailAddress').value;
-      const contactNumber = document.getElementById('contactNumber').value;
+function setupEventListeners() {
+  
+  document.querySelectorAll('.tab-button').forEach(button => {
+    button.addEventListener('click', function() {
       
-      // Here you'd typically save these values via AJAX to your backend
-      // For now, we'll just close the modal after "saving"
-      alert('Changes saved successfully!');
-      closeUserModal();
-    });
-
-    // Tab management
-    var tabButtons = document.querySelectorAll('.tab-button');
-    tabButtons.forEach(function(button) {
-      button.addEventListener('click', function() {
-        tabButtons.forEach(function(btn) {
-          btn.classList.remove('active');
-        });
-        button.classList.add('active');
+      document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('active');
       });
+      this.classList.add('active');
+      
+     
+      const tabId = this.getAttribute('data-tab');
+      currentTab = tabId;
+      
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+      });
+      document.getElementById(tabId).classList.add('active');
+      
+  
+      const searchTerm = document.getElementById('searchInput').value;
+      if (searchTerm) {
+        filterTable(searchTerm);
+      }
     });
-  </script>
-</body>
-</html>
+  });
+
+
+  document.getElementById('searchInput').addEventListener('input', function() {
+    filterTable(this.value);
+  });
+
+
+  document.getElementById('addUserBtn').addEventListener('click', function() {
+    openAddModal();
+  });
+
+ 
+  document.getElementById('addUserForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    addNewUser();
+  });
+
+
+  document.getElementById('editUserBtn').addEventListener('click', function() {
+    updateUser();
+  });
+}
+
+
+function loadUserData() {
+  fetch('/api/users')
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then(data => {
+      dentistsData = data.dentists || [];
+      staffData = data.staff || [];
+      renderDentistsTable(dentistsData);
+      renderStaffTable(staffData);
+    })
+    .catch(error => {
+      console.error('Error fetching user data:', error);
+      alert('Failed to load user data. Please refresh the page.');
+    });
+}
+
+
+function renderDentistsTable(dentists) {
+  const tableBody = document.getElementById('dentistsTableBody');
+  const noResults = document.getElementById('noDentistsResults');
+  
+  tableBody.innerHTML = '';
+  
+  if (dentists.length === 0) {
+    noResults.classList.remove('no-display');
+    return;
+  }
+  
+  noResults.classList.add('no-display');
+  
+  dentists.forEach((dentist, index) => {
+   
+    if (!dentist.ISACTIVE) return;
+    
+    const row = document.createElement('tr');
+    
+    row.innerHTML = `
+      <td>${dentist.USER_LNAME || ''}</td>
+      <td>${dentist.USER_FNAME || ''}</td>
+      <td>${dentist.PHO_NUM || ''}</td>
+      <td>${dentist.EMAIL || 'N/A'}</td>
+      <td>${dentist.DENTIST_SPEC || ''}</td>
+      <td class="action-cell">
+        <div class="action-dots" onclick="toggleDropdown(this)">...</div>
+        <div class="dropdown-content">
+          <a href="#" onclick="openUserModal(${dentist.LOGIN_ID}, 'dentist')">View Details</a>
+          <a href="#" class="deactivate-link" onclick="toggleUserStatus(${dentist.LOGIN_ID})">Deactivate</a>
+        </div>
+      </td>
+    `;
+    
+    tableBody.appendChild(row);
+  });
+}
+
+
+function renderStaffTable(staff) {
+  const tableBody = document.getElementById('staffTableBody');
+  const noResults = document.getElementById('noStaffResults');
+  
+  tableBody.innerHTML = '';
+  
+  if (staff.length === 0) {
+    noResults.classList.remove('no-display');
+    return;
+  }
+  
+  noResults.classList.add('no-display');
+  
+  staff.forEach((staffMember, index) => {
+   
+    if (!staffMember.ISACTIVE) return;
+    
+    const row = document.createElement('tr');
+    
+    row.innerHTML = `
+      <td>${staffMember.USER_LNAME || ''}</td>
+      <td>${staffMember.USER_FNAME || ''}</td>
+      <td>${staffMember.PHO_NUM || ''}</td>
+      <td>${staffMember.EMAIL || 'N/A'}</td>
+      <td class="action-cell">
+        <div class="action-dots" onclick="toggleDropdown(this)">...</div>
+        <div class="dropdown-content">
+          <a href="#" onclick="openUserModal(${staffMember.LOGIN_ID}, 'staff')">View Details</a>
+          <a href="#" class="deactivate-link" onclick="toggleUserStatus(${staffMember.LOGIN_ID})">Deactivate</a>
+        </div>
+      </td>
+    `;
+    
+    tableBody.appendChild(row);
+  });
+}
+
+
+function filterTable(searchTerm) {
+  searchTerm = searchTerm.toLowerCase().trim();
+  
+  if (currentTab === 'dentists-tab') {
+    const filteredDentists = dentistsData.filter(dentist => 
+      (dentist.USER_LNAME && dentist.USER_LNAME.toLowerCase().includes(searchTerm)) ||
+      (dentist.USER_FNAME && dentist.USER_FNAME.toLowerCase().includes(searchTerm)) ||
+      (dentist.PHO_NUM && dentist.PHO_NUM.toLowerCase().includes(searchTerm)) ||
+      (dentist.EMAIL && dentist.EMAIL.toLowerCase().includes(searchTerm)) ||
+      (dentist.DENTIST_SPEC && dentist.DENTIST_SPEC.toLowerCase().includes(searchTerm))
+    );
+    
+    renderDentistsTable(filteredDentists);
+  } else {
+    const filteredStaff = staffData.filter(staff => 
+      (staff.USER_LNAME && staff.USER_LNAME.toLowerCase().includes(searchTerm)) ||
+      (staff.USER_FNAME && staff.USER_FNAME.toLowerCase().includes(searchTerm)) ||
+      (staff.PHO_NUM && staff.PHO_NUM.toLowerCase().includes(searchTerm)) ||
+      (staff.EMAIL && staff.EMAIL.toLowerCase().includes(searchTerm))
+    );
+    
+    renderStaffTable(filteredStaff);
+  }
+}
+
+
+function toggleDropdown(element) {
+ 
+  document.querySelectorAll('.dropdown-content').forEach(dropdown => {
+    if (dropdown !== element.nextElementSibling) {
+      dropdown.classList.remove('show');
+    }
+  });
+  
+
+  element.nextElementSibling.classList.toggle('show');
+  
+
+  document.addEventListener('click', function closeDropdown(event) {
+    if (!event.target.matches('.action-dots')) {
+      document.querySelectorAll('.dropdown-content').forEach(dropdown => {
+        dropdown.classList.remove('show');
+      });
+      document.removeEventListener('click', closeDropdown);
+    }
+  });
+}
+
+function openUserModal(userId, userType) {
+  const userData = userType === 'dentist' 
+    ? dentistsData.find(d => d.LOGIN_ID === userId)
+    : staffData.find(s => s.LOGIN_ID === userId);
+  
+  if (!userData) return;
+  
+  document.getElementById('userIdField').value = userId;
+  document.getElementById('emailAddress').value = userData.EMAIL || '';
+  document.getElementById('contactNumber').value = userData.PHO_NUM || '';
+  
+  const userTitle = userType === 'dentist' 
+    ? `Dr. ${userData.USER_FNAME} ${userData.USER_LNAME}`
+    : `${userData.USER_FNAME} ${userData.USER_LNAME}`;
+    
+  document.getElementById('userModalTitle').textContent = userTitle;
+  
+  if (userType === 'dentist') {
+    document.getElementById('userModalSpec').textContent = userData.DENTIST_SPEC || '';
+    document.getElementById('userModalSpec').style.display = 'block';
+  } else {
+    document.getElementById('userModalSpec').style.display = 'none';
+  }
+  
+
+  if (userData.USER_IMG) {
+    document.getElementById('userModalImage').src = userData.USER_IMG;
+  } else {
+    document.getElementById('userModalImage').src = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgIDxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjQ1IiBmaWxsPSIjZTBlMGUwIi8+CiAgICA8Y2lyY2xlIGN4PSI1MCIgY3k9IjQwIiByPSIxNSIgZmlsbD0iIzhjOGM4YyIvPgogICAgPHBhdGggZD0iTTI1LDcwIEMyNSw1NSA3NSw1NSA3NSw3MCBDNZUFTRUJBTEQNZUFTRUJBTEBNMPU4MCBMNzUuODAgQzc1LDkwIDI1LDkwIDI1LDgwIFoiIGZpbGw9IiM4YzhjOGMiLz4KPC9zdmc+";
+  }
+  
+  document.getElementById('userModal').style.display = 'flex';
+}
+
+
+function closeUserModal() {
+  document.getElementById('userModal').style.display = 'none';
+}
+
+
+function openAddModal() {
+  document.getElementById('addUserForm').reset();
+  document.getElementById('specializationColumn').style.display = 'none';
+  document.getElementById('addUserModal').style.display = 'flex';
+}
+
+
+function closeAddModal() {
+  document.getElementById('addUserModal').style.display = 'none';
+}
+
+
+function closeCredentialsModal() {
+  document.getElementById('credentialsModal').style.display = 'none';
+}
+
+
+function showSpecializationField() {
+  const userRole = document.getElementById('userRole').value;
+  if (userRole === 'dentist') {
+    document.getElementById('specializationColumn').style.display = 'block';
+    document.getElementById('specialization').setAttribute('required', '');
+  } else {
+    document.getElementById('specializationColumn').style.display = 'none';
+    document.getElementById('specialization').removeAttribute('required');
+  }
+}
+
+
+function addNewUser() {
+  const formData = new FormData(document.getElementById('addUserForm'));
+  
+  fetch('/add_user', {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    return response.json();
+  })
+  .then(data => {
+    if (data.success) {
+      
+      document.getElementById('generatedUsername').textContent = data.username;
+      document.getElementById('generatedPassword').textContent = data.password;
+      
+      closeAddModal();
+      document.getElementById('credentialsModal').style.display = 'flex';
+      
+      
+      loadUserData();
+    } else {
+      alert('Failed to add user: ' + data.message);
+    }
+  })
+  .catch(error => {
+    console.error('Error adding user:', error);
+    alert('Failed to add user. Please try again.');
+  });
+}
+
+
+function updateUser() {
+  const userId = document.getElementById('userIdField').value;
+  const email = document.getElementById('emailAddress').value;
+  const contactNumber = document.getElementById('contactNumber').value;
+  
+  const formData = new FormData();
+  formData.append('emailAddress', email);
+  formData.append('contactNumber', contactNumber);
+  
+  fetch(`/update_user/${userId}`, {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    return response.json();
+  })
+  .then(data => {
+    if (data.success) {
+      closeUserModal();
+      loadUserData(); 
+      alert('User updated successfully');
+    } else {
+      alert('Failed to update user: ' + data.message);
+    }
+  })
+  .catch(error => {
+    console.error('Error updating user:', error);
+    alert('Failed to update user. Please try again.');
+  });
+}
+
+
+function toggleUserStatus(userId) {
+  fetch(`/toggle_user_status/${userId}`)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then(data => {
+      if (data.success) {
+        loadUserData(); 
+        alert(`User ${data.newStatus ? 'activated' : 'deactivated'} successfully`);
+      } else {
+        alert('Failed to update user status: ' + data.message);
+      }
+    })
+    .catch(error => {
+      console.error('Error toggling user status:', error);
+      alert('Failed to update user status. Please try again.');
+    });
+}
+
+
+function copyToClipboard(elementId) {
+  const textElement = document.getElementById(elementId);
+  const textToCopy = textElement.textContent;
+  
+  navigator.clipboard.writeText(textToCopy)
+    .then(() => {
+      
+      const originalText = textElement.style.backgroundColor;
+      textElement.style.backgroundColor = '#d4edda';
+      setTimeout(() => {
+        textElement.style.backgroundColor = originalText;
+      }, 500);
+    })
+    .catch(err => {
+      console.error('Failed to copy text: ', err);
+      alert('Failed to copy text to clipboard');
+    });
+}
+</script>
