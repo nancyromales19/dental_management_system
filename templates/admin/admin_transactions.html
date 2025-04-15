@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Orthocare - Treatments</title>
+    <title>Orthocare - Admin Transactions</title>
     <style>
         * {
             box-sizing: border-box;
@@ -264,7 +264,7 @@
             margin-top: 20px;
         }
         
-        .btn-add, .btn-update {
+        button {
             background-color: #2d4569;
             color: white;
             padding: 8px 20px;
@@ -274,7 +274,7 @@
             font-weight: 500;
         }
         
-        .btn-add:hover, .btn-update:hover {
+        button:hover {
             background-color: #1f324d;
         }
         
@@ -318,19 +318,19 @@
 </head>
 <body>
     <div class="sidebar">
-        <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
-        <a href="#">Patient Management</a>
-        <a href="{{ url_for('admin_user_management') }}">User Management</a>
-        <a href="#">Appointment</a>
-        <a href="#">Transactions</a>
-        <a href="#" class="active">Treatments</a>
+        <a href="{{url_for('admin_dashboard')}}">Dashboard</a>
+        <a href="{{url_for('admin_patient_management')}}">Patient Management</a>
+        <a href="{{url_for('admin_user_management')}}">User Management</a>
+        <a href="{{url_for('admin_APPOINTMENT')}}">Appointment</a>
+        <a href="#" class="active">Transactions</a>
+        <a href="{{url_for('admin_treatments')}}">Treatments</a>
         <a href="#">Dental Cases</a>
-        <a href="#">Settings</a>
+        <a href="{{url_for('admin_settings')}}">Settings</a>
         <a href="{{ url_for('logout') }}">Logout</a>
     </div>
     
     <div class="header">
-        <div class="header-title">Admin | Treatments</div>
+        <div class="header-title">Admin | Transactions</div>
         <div class="header-icons">
             <span>🔔</span>
             <span>👤</span>
@@ -339,31 +339,39 @@
     
     <div class="main-content">
         <div class="container">
-            <h2>Orthocare List of Treatments</h2>
+            <h2>Transactions History</h2>
             
             <div id="alert" class="alert"></div>
             
             <div class="search-container">
-                <input type="text" id="searchInput" placeholder="Search treatments...">
+                <input type="text" id="searchInput" placeholder="Search transactions...">
             </div>
             
+            <!--
             <div class="add-button">
                 <button id="openAddModalBtn">New Treatment</button>
             </div>
+            -->
+
+            <!-- 
+                Button Test for viewing Transaction window
+            -->
+            <button id="view-transactions-test">View Transaction Test</button>
             
             <div id="spinner" class="spinner"></div>
             
             <table>
                 <thead>
                     <tr>
-                        <th>Treatment</th>
-                        <th>Description</th>
-                        <th>No. of Sessions</th>
-                        <th>Estimated Duration</th>
-                        <th>Price</th>
+                        <th>Patient Name</th>
+                        <th>Insurance</th>
+                        <th>Date of Transaction</th>
+                        <th>Time of Transaction</th>
+                        <th>Amount</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
-                <tbody id="treatmentsTable">
+                <tbody id="transactionsTable">
                     
                 </tbody>
             </table>
@@ -374,6 +382,18 @@
         </div>
     </div>
     
+
+    <!-- Window for View Transaction -->
+    <div id="viewTransationWindow" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title"></div>Transaction Details</div>
+                <span class="close" id="closeAddModal">&times;</span>
+            </div>
+
+        </div>
+    </div>
+
     
     <div id="addTreatmentModal" class="modal">
         <div class="modal-content">
@@ -417,6 +437,9 @@
     </div>
     
    
+    <!-- 
+    Di nani magamit guro
+
     <div id="editTreatmentModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -458,9 +481,13 @@
             </form>
         </div>
     </div>
-    
+    -->
+
     <script>
+        // Di nako manghilabot diari
         
+        const viewTransaction = document.getElementById("viewTransationWindow")
+
         const addModal = document.getElementById("addTreatmentModal");
         const editModal = document.getElementById("editTreatmentModal");
         const openAddModalBtn = document.getElementById("openAddModalBtn");

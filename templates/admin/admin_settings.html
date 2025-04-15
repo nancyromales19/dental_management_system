@@ -73,6 +73,14 @@
             margin-left: 250px;
             padding: 70px 20px 20px 20px; /* Add top padding to account for header */
         }
+
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
         
         .dashboard-content {
             display: grid;
@@ -208,12 +216,12 @@
 </head>
 <body>
     <div class="sidebar">
-        <a href="#">Dashboard</a>
-        <a href="admin_patient_management.html">Patient Management</a>
-        <a href="{{ url_for('admin_user_management') }}">User Management</a>
-        <a href="#">Appointment</a>
-        <a href="#">Transactions</a>
-        <a href="{{ url_for('admin_treatments') }}">Treatments</a>
+        <a href="{{url_for('admin_dashboard')}}">Dashboard</a>
+        <a href="{{url_for('admin_patient_management')}}">Patient Management</a>
+        <a href="{{url_for('admin_user_management')}}">User Management</a>
+        <a href="{{url_for('admin_APPOINTMENT')}}">Appointment</a>
+        <a href="{{url_for('admin_transactions')}}">Transactions</a>
+        <a href="{{url_for('admin_treatments')}}">Treatments</a>
         <a href="#">Dental Cases</a>
         <a href="#" class="active">Settings</a>
     </div>
@@ -227,59 +235,61 @@
     </div>
     
     <div class="main-content">
-        <img class="pfp" src="..\static\default_pfp.png">
-        <input type="image" class="edit-icon" src="..\static\edit-icon.png">
-        <div class="account-name">
-            <h3>[FULL NAME]</h3>
-            <div>Admin</div>
-        </div>
-
-        <form class="edit-profile">
-            <div class="input-group">
-                <div class="input-changer">
-                    <label for="lname">LAST NAME</label>
-                    <input type="text" id="lname" placeholder="Last Name...">
-                </div>
-    
-                <div class="input-changer">
-                    <label for="fname">FIRST NAME</label>
-                    <input type="text" id="fname" placeholder="First Name...">
-                </div>
-    
-                <div class="input-changer">
-                    <label for="address">ADDRESS</label>
-                    <input type="text" id="address" placeholder="Address...">
-                </div>
+        <div class="container">
+            <img class="pfp" src="..\..\static\default_pfp.png">
+            <input type="image" class="edit-icon" src="..\..\static\edit-icon.png">
+            <div class="account-name">
+                <h3>[FULL NAME]</h3>
+                <div>Admin</div>
             </div>
 
-            <div class="input-group">
-                <div class="input-changer">
-                    <label for="email">EMAIL ADDRESS</label>
-                    <input type="text" id="email" placeholder="Email Address...">
+            <form class="edit-profile">
+                <div class="input-group">
+                    <div class="input-changer">
+                        <label for="lname">LAST NAME</label>
+                        <input type="text" id="lname" placeholder="Last Name...">
+                    </div>
+        
+                    <div class="input-changer">
+                        <label for="fname">FIRST NAME</label>
+                        <input type="text" id="fname" placeholder="First Name...">
+                    </div>
+        
+                    <div class="input-changer">
+                        <label for="address">ADDRESS</label>
+                        <input type="text" id="address" placeholder="Address...">
+                    </div>
                 </div>
-    
-                <div class="input-changer">
-                    <label for="phone">PHONE NUMBER</label>
-                    <input type="text" id="phone" placeholder="Phone Number...">
+
+                <div class="input-group">
+                    <div class="input-changer">
+                        <label for="email">EMAIL ADDRESS</label>
+                        <input type="text" id="email" placeholder="Email Address...">
+                    </div>
+        
+                    <div class="input-changer">
+                        <label for="phone">PHONE NUMBER</label>
+                        <input type="text" id="phone" placeholder="Phone Number...">
+                    </div>
                 </div>
+                
+
+                <h2>Change Password?</h2>
+
+                <div class="input-group">
+                    <div class="input-changer">
+                        <label for="newPass">NEW PASSWORD</label>
+                        <input type="password" id="newPass">
+                    </div>
+        
+                    <div class="input-changer">
+                        <label for="confirmPass">RE-ENTER PASSWORD</label>
+                        <input type="password" id="confirmPass">
+                    </div>
+                </div>
+
+                <input class="save-changes" type="submit" value="Save Changes">
             </div>
-            
-
-            <h2>Change Password?</h2>
-
-            <div class="input-group">
-                <div class="input-changer">
-                    <label for="newPass">NEW PASSWORD</label>
-                    <input type="password" id="newPass">
-                </div>
-    
-                <div class="input-changer">
-                    <label for="confirmPass">RE-ENTER PASSWORD</label>
-                    <input type="password" id="confirmPass">
-                </div>
-            </div>
-
-            <input class="save-changes" type="submit" value="Save Changes">
         </div>
     </div>
 </body>

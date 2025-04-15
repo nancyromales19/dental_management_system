@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orthocare - Dentist Dashboard</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+        }
+        
+        .header {
+            background-color: #2d4569;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: fixed;
+            top: 0;
+            right: 0;
+            left: 250px; /* Make space for sidebar */
+            z-index: 100;
+            height: 50px;
+        }
+        
+        .header-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .header-icons {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .sidebar {
+            width: 250px;
+            background-color: #2d4569;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            color: white;
+            z-index: 200;
+        }
+        
+        .sidebar a {
+            display: block;
+            padding: 15px 20px;
+            color: white;
+            text-decoration: none;
+            border-left: 4px solid transparent;
+        }
+        
+        .sidebar a:hover,
+        .sidebar a.active {
+            background-color: #1f324d;
+            border-left: 4px solid #92b4d3;
+        }
+        
+        .main-content {
+            margin-left: 250px;
+            margin-right: 0px;
+            padding: 70px 20px 20px 20px; /* Add top padding to account for header */
+        }
+
+        
+        .dashboard-content {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+            flex-grow: 1;
+        }
+        
+        button {
+            background-color: #2d4569;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        button:hover {
+            background-color: #1f324d;
+        }
+        
+
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .report-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2d4569;
+        }
+        
+        .report-filter {
+            background-color: #2d4569;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .report-section > * {
+            flex: 1;
+        }
+
+        .report-section {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .appointments {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 20px;
+            overflow-x: scroll;
+            overflow-y: hidden;
+            
+            width: auto;
+            height: auto;
+            box-sizing: border-box;
+            padding: 20px;
+
+            flex-shrink: 0;
+        }
+
+        .appointment-card {
+            flex: 0 0 280px;
+            width: 200px;
+            height: 100%;
+            padding: 16px 24px;
+
+            background-color: white;
+            border: 2px solid #666;
+            border-radius: 8px;
+            box-shadow: -10px 16px 4px rgb(112, 112, 112);
+
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+
+            overflow: hidden;
+        }
+
+        .appointment-card h2,
+        .appointment-card h3 {
+            margin: 0;
+        }
+
+        .appointment-card button {
+            align-self: flex-end;
+            margin-top: 20px;
+        }
+
+        .appointment-time {
+            color: #2d4569;
+            font-weight: 800;
+        }
+
+
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 0px;
+        }
+
+        .stat-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .stat-title {
+            color: #2d4569;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .stat-value {
+            font-size: 70px;
+            font-weight: bold;
+            color: #2d4569;
+        }
+        
+        .stat-description {
+            color: #666;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .month-dropdown {
+            padding: 24px;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="sidebar">
+        <a href="#" class="active">Dashboard</a>
+        <a href="{{url_for('dentist_patient_management')}}">Patient Management</a>
+        <a href="{{url_for('dentist_user_management')}}">User Management</a>
+        <a href="{{url_for('dentist_APPOINTMENT')}}">Appointment</a>
+        <a href="{{url_for('dentist_transactions')}}">Transactions</a>
+        <a href="{{url_for('dentist_treatments')}}">Treatments</a>
+        <a href="{{url_for('dentist_dental_cases')}}">Dental Cases</a>
+        <a href="{{url_for('dentist_settings')}}">Settings</a>
+    </div>
+    
+    <div class="header">
+        <div class="header-title">Dentist | Dashboard</div>
+        <div class="header-icons">
+            <span>🔔</span>
+            <span>👤</span>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="dashboard-content">
+            <div class="report-section">
+                <div class="report-header">
+                    <h1>Good Day, Dr. Fediliga!</h1>
+                    <div>Tuesday, 8 April 2025</div>
+                </div>
+                
+                <div>You have 4 appointments scheduled for today!</div>
+
+                <div>Today's Appointments</div>
+
+                <div class="appointments" >
+                    <div class="appointment-card">
+                        <h3 class="appointment-time">9:00 AM</h3>
+                        <h2 class="appointment-name">Nancy Romales</h2>
+                        <div class="patient-status">Old Patient</div>
+                        <button>Reschedule</button>
+                    </div>
+
+                    <div class="appointment-card">
+                        <h3 class="appointment-time">9:00 AM</h3>
+                        <h2 class="appointment-name">Nancy Romales</h2>
+                        <div class="patient-status">Old Patient</div>
+                        <button>Reschedule</button>
+                    </div>
+
+                    <div class="appointment-card">
+                        <h3 class="appointment-time">9:00 AM</h3>
+                        <h2 class="appointment-name">Nancy Romales</h2>
+                        <div class="patient-status">Old Patient</div>
+                        <button>Reschedule</button>
+                    </div>
+
+                    <div class="appointment-card">
+                        <h3 class="appointment-time">9:00 AM</h3>
+                        <h2 class="appointment-name">Nancy Romales</h2>
+                        <div class="patient-status">Old Patient</div>
+                        <button>Reschedule</button>
+                    </div>
+
+                    <div class="appointment-card">
+                        <h3 class="appointment-time">9:00 AM</h3>
+                        <h2 class="appointment-name">Johnny Sins</h2>
+                        <div class="patient-status">Old Patient</div>
+                        <button>Reschedule</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="month-dropdown">
+            <label for="cars">Select a month:</label>
+            <select name="months" id="months">
+                <option value="jan">January</option>
+                <option value="feb">February</option>
+                <option value="mar">March</option>
+                <option value="apr">April</option>
+                <option value="may">May</option>
+                <option value="jun">June</option>
+                <option value="jul">July</option>
+                <option value="aug">August</option>
+                <option value="sep">September</option>
+                <option value="oct">October</option>
+                <option value="nov">November</option>
+                <option value="dec">December</option>
+            </select>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-title">My Total Appointments per Month</div>
+                <div class="stat-value">0</div>
+                <div class="stat-description">Appointments in the month of (month)</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-title">My Total Patients per Month</div>
+                <div class="stat-value">0</div>
+                <div class="stat-description">Patients in the month of (month)</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
