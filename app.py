@@ -537,6 +537,116 @@ def update_treatment(treatment_id):
             'message': 'Unauthorized'
         }), 401
 
+@app.route('/settings')
+def admin_settings():
+    if 'user' in session:
+        try:
+            login_id = session.get('login_id')
+            
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            
+            # Get user profile
+            cursor.execute("""
+                SELECT u.LOGIN_ID, u.USER_LNAME, u.USER_FNAME, u.USER_ROLE, 
+                       u.PHO_NUM, u.EMAIL, u.USER_IMG
+                FROM USER_PROFILE u
+                WHERE u.LOGIN_ID = ?
+            """, (login_id,))
+            
+            user = cursor.fetchone()
+            
+            if user:
+                # Format the data for the template
+                user_data = {
+                    'login_id': user[0],
+                    'user_lname': user[1],
+                    'user_fname': user[2],
+                    'user_role': user[3],
+                    'phone_number': user[4],
+                    'email': user[5],  # This will be None if email is NULL in the database
+                    'user_img': user[6]
+                }
+                
+                conn.close()
+                return render_template('admin_settings.html', 
+                                     user_name=session.get('user'),
+                                     **user_data)
+            else:
+                conn.close()
+                return redirect(url_for('login'))
+        except Exception as e:
+            print(f"Error fetching user profile: {e}")
+            return redirect(url_for('login'))
+    else:
+        return redirect(url_for('login'))
+
+@app.route('/update_profile', methods=['POST'])
+def update_profile():
+    if 'user' in session:
+        try:
+            login_id = session.get('login_id')
+            
+            # Get form data
+            firstname = request.form.get('firstname')
+            lastname = request.form.get('lastname')
+            phone = request.form.get('phone')
+            email = request.form.get('email')
+            
+            # Handle the case where email is 'N/A' or empty
+            if email == 'N/A' or not email.strip():
+                email = None
+                
+            new_password = request.form.get('new_password')
+            confirm_password = request.form.get('confirm_password')
+            
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            
+            # Handle profile image upload if present
+            profile_img_path = None
+            if 'profile_image' in request.files:
+                profile_img = request.files['profile_image']
+                if profile_img.filename != '':
+                    filename = secure_filename(profile_img.filename)
+                    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                    profile_img.save(file_path)
+                    profile_img_path = f"/static/uploads/{filename}"
+            
+            # Update basic profile info
+            if profile_img_path:
+                cursor.execute("""
+                    EXEC SP_UPDATE_USER_PROFILE_WITH_IMAGE ?, ?, ?, ?, ?, ?
+                """, (login_id, firstname, lastname, phone, email, profile_img_path))
+            else:
+                cursor.execute("""
+                    EXEC SP_UPDATE_USER_PROFILE ?, ?, ?, ?, ?
+                """, (login_id, firstname, lastname, phone, email))
+            
+            # If password change is requested
+            if new_password and new_password == confirm_password:
+                cursor.execute("""
+                    EXEC SP_UPDATE_USER_PASSWORD ?, ?
+                """, (login_id, new_password))
+            
+            conn.commit()
+            conn.close()
+            
+            # Update session data
+            session['user'] = f"{firstname} {lastname}"
+            
+            flash('Profile updated successfully', 'success')
+            return redirect(url_for('settings'))
+            
+        except Exception as e:
+            print(f"Error updating profile: {e}")
+            flash('An error occurred while updating your profile', 'danger')
+            return redirect(url_for('admin_settings'))
+    else:
+
+        return redirect(url_for('login'))
+
+
 @app.route('/logout')
 def logout():
     session.clear()  

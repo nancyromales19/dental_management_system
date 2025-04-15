@@ -333,15 +333,6 @@
       flex: 1;
     }
     
-    .logo {
-      width: 150px;
-      height: 150px;
-      display: block;
-      margin: 0 auto;
-      position: relative;
-      z-index: 1;
-    }
-
     /* Credentials Modal */
     .credentials-container {
       background-color: #f4f6f8;
@@ -418,7 +409,8 @@
     <a href="#">Transactions</a>
     <a href="{{ url_for('admin_treatments') }}">Treatments</a>
     <a href="#">Dental Cases</a>
-    <a href="#">Settings</a>
+    <a href="{{ url_for('admin_settings') }}">Settings</a>
+    <a href="{{ url_for('logout') }}">Logout</a>
   </div>
 
   <div class="header">
@@ -431,7 +423,7 @@
 
   <div class="main-content">
     <div class="container">
-      <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDE1MCAxNTAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPGNpcmNsZSBjeD0iNzUiIGN5PSI3NSIgcj0iNjUiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzJkNDU2OSIgc3Ryb2tlLXdpZHRoPSIzIiAvPgogIDxwYXRoIGQ9Ik01MC4xODQ1LDg1LjA0MTUgQzUwLjE4NDUsODUuMDQxNSA0Mi41NzE0LDkzLjYzNzMgNDYuMzU4MSw5Ny40MjQgQzUwLjE0NDgsOTUuMTM2MSA1Mi4xLDg1LjA0MTUgNTAuMTg0NSw4NS4wNDE1IFoiIGZpbGw9IiMwMGFjYzEiIC8+CiAgPHBhdGggZD0iTTk5LjgxNTUsODUuMDQxNSBDOTkuODE1NSw4NS4wNDE1IDEwNy40Mjg2LDkzLjYzNzMgMTAzLjY0MTksOTcuNDI0IEM5OS44NTUyLDk1LjEzNjEgOTcuOSw4NS4wNDE1IDk5LjgxNTUsODUuMDQxNSBaIiBmaWxsPSIjMDBhY2MxIiAvPgogIDxwYXRoIGQ9Ik03NSw0NSBDNTUsMzUgMzAsNDUgMzAsNjUgQzMwLDg1IDQ1LDkwIDQ1LDkwIEwyMCw5MCBMMjAsOTUgTDEzMCw5NSBMMTMwLDkwIEwxMDUsOTAgQzEwNSw5MCAxMjAsODUgMTIwLDY1IEMxMjAsNDUgOTUsMzUgNzUsNDUgWiIgZmlsbD0iIzAwYWNjMSIgLz4KICA8dGV4dCB4PSI1MCIgeT0iMTI1IiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTYiIGZvbnQtd2VpZ2h0PSJib2xkIiBmaWxsPSIjMmQ0NTY5Ij5PUlRIT0NBUkU8L3RleHQ+Cjwvc3ZnPg==" alt="Orthocare Logo" class="logo">
+      
 
       <div class="top-buttons">
         <div class="search-bar">

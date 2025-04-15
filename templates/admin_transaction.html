@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orthocare - Transactions</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+        }
+        
+        .header {
+            background-color: #2d4569;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: fixed;
+            top: 0;
+            right: 0;
+            left: 250px; /* Make space for sidebar */
+            z-index: 100;
+            height: 50px;
+        }
+        
+        .header-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .header-icons {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .sidebar {
+            width: 250px;
+            background-color: #2d4569;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            color: white;
+            z-index: 200;
+        }
+        
+        .sidebar a {
+            display: block;
+            padding: 15px 20px;
+            color: white;
+            text-decoration: none;
+            border-left: 4px solid transparent;
+        }
+        
+        .sidebar a:hover,
+        .sidebar a.active {
+            background-color: #1f324d;
+            border-left: 4px solid #92b4d3;
+        }
+        
+        .main-content {
+            margin-left: 250px;
+            padding: 70px 20px 20px 20px; /* Add top padding to account for header */
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        
+        h2 {
+            margin-top: 0;
+            font-size: 24px;
+            font-weight: 600;
+            color: #2d4569;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .search-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 15px;
+        }
+        
+        .search-container input {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 200px;
+        }
+        
+        .add-button {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 15px;
+        }
+        
+        .add-button button {
+            background-color: #2d4569;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        
+        .add-button button::before {
+            content: "+";
+            margin-right: 5px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        thead {
+            background-color: #f4f6f8;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        
+        th {
+            font-weight: 600;
+        }
+        
+        .patient-name {
+            color: #3366cc;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+        
+        .pagination {
+            text-align: center;
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+        }
+        
+        .pagination a {
+            display: inline-block;
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            color: #333;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        
+        .pagination a.active {
+            background-color: #2d4569;
+            color: white;
+            border-color: #2d4569;
+        }
+        
+        .pagination a:hover:not(.active) {
+            background-color: #f4f6f8;
+        }
+        
+        .action-button {
+            cursor: pointer;
+        }
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 600px;
+            position: relative;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2d4569;
+        }
+        
+        .close {
+            color: #aaa;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover {
+            color: #555;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .form-row .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .form-group textarea {
+            height: 100px;
+            resize: vertical;
+        }
+        
+        .treatment-list {
+            margin-top: 10px;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 4px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        
+        .treatment-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .treatment-item:last-child {
+            border-bottom: none;
+        }
+        
+        .modal-footer {
+            text-align: right;
+            margin-top: 20px;
+        }
+        
+        .btn-add {
+            background-color: #2d4569;
+            color: white;
+            padding: 8px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        .btn-add:hover {
+            background-color: #1f324d;
+        }
+        
+        .transaction-details {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .detail-row {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            width: 150px;
+        }
+        
+        .detail-value {
+            flex: 1;
+        }
+        
+        .treatment-applied {
+            margin: 15px 0;
+        }
+        
+        .treatment-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px dashed #ddd;
+        }
+        
+        .summary {
+            background-color: #f4f6f8;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 15px;
+        }
+        
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+        }
+        
+        .total {
+            font-weight: 600;
+            font-size: 18px;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="sidebar">
+        <a href="#">Dashboard</a>
+        <a href="#">Patient Management</a>
+        <a href="#">User Management</a>
+        <a href="#">Appointment</a>
+        <a href="#" class="active">Transactions</a>
+        <a href="#">Treatments</a>
+        <a href="#">Dental Cases</a>
+        <a href="#">Settings</a>
+    </div>
+    
+    <div class="header">
+        <div class="header-title">Admin | Transactions</div>
+        <div class="header-icons">
+            <span>🔔</span>
+            <span>👤</span>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="container">
+            <h2>Transaction History</h2>
+            
+            <div class="search-container">
+                <input type="text" placeholder="Search...">
+            </div>
+            
+            <div class="add-button">
+                <button id="openModalBtn">New Transaction</button>
+            </div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Patient Name</th>
+                        <th>Insurance</th>
+                        <th>Date of Transaction</th>
+                        <th>Time of Transaction</th>
+                        <th>Amount</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="patient-name">Nancy Retutas</td>
+                        <td>Ameritas</td>
+                        <td>2018-03-15</td>
+                        <td>3:30 PM</td>
+                        <td>₱5,000</td>
+                        <td class="action-button">⋯</td>
+                    </tr>
+                    <tr>
+                        <td class="patient-name">Jose Paul Lorenzo</td>
+                        <td>Ameritas</td>
+                        <td>2018-03-15</td>
+                        <td>3:30 PM</td>
+                        <td>₱5,000</td>
+                        <td class="action-button">⋯</td>
+                    </tr>
+                    <tr>
+                        <td class="patient-name">Jason Martinez</td>
+                        <td>Cigna Corporation</td>
+                        <td>2018-03-16</td>
+                        <td>3:00 PM</td>
+                        <td>₱5,000</td>
+                        <td class="action-button">⋯</td>
+                    </tr>
+                    <tr>
+                        <td class="patient-name">Eddy Yabano</td>
+                        <td>United HealthCare</td>
+                        <td>2018-03-16</td>
+                        <td>3:30 PM</td>
+                        <td>₱5,000</td>
+                        <td class="action-button">⋯</td>
+                    </tr>
+                    <tr>
+                        <td class="patient-name">Mary Yani</td>
+                        <td>Delta Dental</td>
+                        <td>2018-03-16</td>
+                        <td>3:30 PM</td>
+                        <td>₱5,000</td>
+                        <td class="action-button">⋯</td>
+                    </tr>
+                    <tr>
+                        <td class="patient-name">Jenni Harrison</td>
+                        <td>Delta Dental</td>
+                        <td>2018-03-15</td>
+                        <td>3:30 PM</td>
+                        <td>₱5,000</td>
+                        <td class="action-button">⋯</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="pagination">
+                <a href="#">&lt;&lt;</a>
+                <a href="#" class="active">1</a>
+                <a href="#">2</a>
+                <a href="#">&gt;&gt;</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- New Transaction Modal -->
+    <div id="transactionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">New Transaction</div>
+                <span class="close">&times;</span>
+            </div>
+            <form id="transactionForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="patientName">Patient Name</label>
+                        <select id="patientName" name="patientName">
+                            <option value="">Select Patient</option>
+                            <option value="Nancy Retutas">Nancy Retutas</option>
+                            <option value="Jose Paul Lorenzo">Jose Paul Lorenzo</option>
+                            <option value="Jason Martinez">Jason Martinez</option>
+                            <option value="Eddy Yabano">Eddy Yabano</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="appointedDentist">Appointed Dentist</label>
+                        <select id="appointedDentist" name="appointedDentist">
+                            <option value="">Select Dentist</option>
+                            <option value="Dr. Maria Rodriguez">Dr. Maria Rodriguez</option>
+                            <option value="Dr. John Smith">Dr. John Smith</option>
+                            <option value="Dr. Sarah Johnson">Dr. Sarah Johnson</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="transactionDate">Date of Transaction</label>
+                        <input type="date" id="transactionDate" name="transactionDate">
+                    </div>
+                    <div class="form-group">
+                        <label for="transactionTime">Time of Transaction</label>
+                        <input type="time" id="transactionTime" name="transactionTime">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="paymentMethod">Mode of Payment</label>
+                        <select id="paymentMethod" name="paymentMethod">
+                            <option value="">Select Payment Method</option>
+                            <option value="Cash">Cash</option>
+                            <option value="Credit Card">Credit Card</option>
+                            <option value="Insurance">Insurance</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="insuranceProvider">Insurance Provider (if applicable)</label>
+                        <select id="insuranceProvider" name="insuranceProvider">
+                            <option value="">Select Insurance</option>
+                            <option value="Ameritas">Ameritas</option>
+                            <option value="Cigna Corporation">Cigna Corporation</option>
+                            <option value="United HealthCare">United HealthCare</option>
+                            <option value="Delta Dental">Delta Dental</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Treatment Applied</label>
+                    <div class="treatment-list">
+                        <div class="treatment-item">
+                            <span>Oral Prophylaxis</span>
+                            <span>₱5,000.00</span>
+                        </div>
+                        <div class="treatment-item">
+                            <span>Oral Surgery</span>
+                            <span>₱10,000.00</span>
+                        </div>
+                        <div class="treatment-item">
+                            <span>X-Ray Test</span>
+                            <span>₱1,500.00</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="subtotal">Subtotal</label>
+                        <input type="text" id="subtotal" name="subtotal" value="₱16,500.00" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="payment">Payment</label>
+                        <input type="text" id="payment" name="payment" placeholder="Enter payment amount">
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="submit" class="btn-add">Save Transaction</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Transaction Details Modal -->
+    <div id="detailsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Transaction Details</div>
+                <span class="close detail-close">&times;</span>
+            </div>
+            
+            <div class="transaction-details">
+                <div class="detail-row">
+                    <div class="detail-label">Patient Name:</div>
+                    <div class="detail-value">Nancy Retutas</div>
+                </div>
+                
+                <div class="detail-row">
+                    <div class="detail-label">Appointed Dentist:</div>
+                    <div class="detail-value">Dr. Maria Rodriguez</div>
+                </div>
+                
+                <div class="detail-row">
+                    <div class="detail-label">Date of Transaction:</div>
+                    <div class="detail-value">2018-03-15</div>
+                </div>
+                
+                <div class="detail-row">
+                    <div class="detail-label">Time of Transaction:</div>
+                    <div class="detail-value">3:30 PM</div>
+                </div>
+                
+                <div class="detail-row">
+                    <div class="detail-label">Mode of Payment:</div>
+                    <div class="detail-value">Cash</div>
+                </div>
+                
+                <h3>Treatment Applied:</h3>
+                <div class="treatment-applied">
+                    <div class="treatment-row">
+                        <div>Oral Prophylaxis</div>
+                        <div>₱5,000.00</div>
+                    </div>
+                    <div class="treatment-row">
+                        <div>Oral Surgery</div>
+                        <div>₱10,000.00</div>
+                    </div>
+                    <div class="treatment-row">
+                        <div>X-Ray Test</div>
+                        <div>₱1,500.00</div>
+                    </div>
+                </div>
+                
+                <div class="summary">
+                    <div class="summary-row">
+                        <div>Subtotal:</div>
+                        <div>₱16,500.00</div>
+                    </div>
+                    <div class="summary-row">
+                        <div>Payment:</div>
+                        <div>₱16,500.00</div>
+                    </div>
+                    <div class="summary-row total">
+                        <div>Balance:</div>
+                        <div>₱0.00</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Get the modals
+        const transactionModal = document.getElementById("transactionModal");
+        const detailsModal = document.getElementById("detailsModal");
+        
+        // Get the buttons that open the modals
+        const addBtn = document.getElementById("openModalBtn");
+        const actionButtons = document.querySelectorAll(".action-button");
+        const patientNames = document.querySelectorAll(".patient-name");
+        
+        // Get the <span> elements that close the modals
+        const closeButtons = document.getElementsByClassName("close");
+        
+        // When the user clicks the button, open the modal 
+        addBtn.onclick = function() {
+            transactionModal.style.display = "block";
+        }
+        
+        // When the user clicks on action buttons or patient names, open details modal
+        actionButtons.forEach(button => {
+            button.onclick = function() {
+                detailsModal.style.display = "block";
+            }
+        });
+        
+        patientNames.forEach(name => {
+            name.onclick = function() {
+                detailsModal.style.display = "block";
+            }
+        });
+        
+        // When the user clicks on <span> (x), close the respective modal
+        Array.from(closeButtons).forEach(button => {
+            button.onclick = function() {
+                transactionModal.style.display = "none";
+                detailsModal.style.display = "none";
+            }
+        });
+        
+        // When the user clicks anywhere outside of the modal, close it
+        window.onclick = function(event) {
+            if (event.target == transactionModal) {
+                transactionModal.style.display = "none";
+            }
+            if (event.target == detailsModal) {
+                detailsModal.style.display = "none";
+            }
+        }
+        
+        // Handle form submission
+        document.getElementById("transactionForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            
+            // Here you would typically collect the form data and send it to your backend
+            const patientName = document.getElementById("patientName").value;
+            const appointedDentist = document.getElementById("appointedDentist").value;
+            const transactionDate = document.getElementById("transactionDate").value;
+            const transactionTime = document.getElementById("transactionTime").value;
+            const paymentMethod = document.getElementById("paymentMethod").value;
+            const insuranceProvider = document.getElementById("insuranceProvider").value;
+            const payment = document.getElementById("payment").value;
+            
+            console.log({
+                patientName,
+                appointedDentist,
+                transactionDate,
+                transactionTime,
+                paymentMethod,
+                insuranceProvider,
+                payment
+            });
+            
+            // Close the modal after submission
+            transactionModal.style.display = "none";
+            
+            // Reset the form
+            document.getElementById("transactionForm").reset();
+        });
+    </script>
+</body>
+</html>
