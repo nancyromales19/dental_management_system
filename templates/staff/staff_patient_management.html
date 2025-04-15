@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Orthocare - Patient Management</title>
+    <title>Orthocare - Staff Patient Management</title>
     <style>
         * {
             box-sizing: border-box;
@@ -159,23 +159,39 @@
         .pagination-btn.active {
             background-color: #1f324d;
         }
+
+        .add-pat-btn {
+            background-color: #2d4569;
+            color: white;
+            padding: 8px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+
+            margin: 4px;
+        }
+        
+        .add-pat-btn:hover {
+            background-color: #1f324d;
+        }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="sidebar">
-        <a href="#">Dashboard</a>
+        <a href="{{url_for('staff_dashboard')}}">Dashboard</a>
         <a href="#" class="active">Patient Management</a>
-        <a href="{{ url_for('user_management') }}">User Management</a>
-        <a href="{{ url_for('appointment') }}">Appointment</a>
-        <a href="#">Transactions</a>
-        <a href="#">Treatments</a>
-        <a href="#">Dental Cases</a>
-        <a href="#">Settings</a>
+        <a href="{{url_for('staff_user_management')}}">User Management</a>
+        <a href="{{url_for('staff_APPOINTMENT')}}">Appointment</a>
+        <a href="{{url_for('staff_transactions')}}">Transactions</a>
+        <a href="{{url_for('staff_treatments')}}">Treatments</a>
+        <a href="{{url_for('staff_dental_cases')}}">Dental Cases</a>
+        <a href="{{url_for('staff_settings')}}">Settings</a>
     </div>
     
     <div class="header">
-        <div class="header-title">Admin | Patient Management</div>
+        <div class="header-title">Staff | Patient Management</div>
         <div class="header-icons">
             <span>🔔</span>
             <span>👤</span>
@@ -183,13 +199,14 @@
     </div>
     
     <div class="main-content">
-        <div class="logo-container">
-            <img src="https://via.placeholder.com/180x80?text=ORTHOCARE" alt="Orthocare Logo" class="logo">
-        </div>
+        <h2>List of Patients</h2>
         
         <div class="search-container">
             <input type="text" placeholder="Search..." class="search-input">
         </div>
+
+        <!-- Add Patient Button -->
+        <button class="add-pat-btn">Add Patient</button>
         
         <table>
             <thead>

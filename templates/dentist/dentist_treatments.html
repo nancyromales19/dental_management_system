@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orthocare - Dentist Treatments</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+        }
+        
+        .header {
+            background-color: #2d4569;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: fixed;
+            top: 0;
+            right: 0;
+            left: 250px; /* Make space for sidebar */
+            z-index: 100;
+            height: 50px;
+        }
+        
+        .header-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .header-icons {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .sidebar {
+            width: 250px;
+            background-color: #2d4569;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            color: white;
+            z-index: 200;
+        }
+        
+        .sidebar a {
+            display: block;
+            padding: 15px 20px;
+            color: white;
+            text-decoration: none;
+            border-left: 4px solid transparent;
+        }
+        
+        .sidebar a:hover,
+        .sidebar a.active {
+            background-color: #1f324d;
+            border-left: 4px solid #92b4d3;
+        }
+        
+        .main-content {
+            margin-left: 250px;
+            padding: 70px 20px 20px 20px; /* Add top padding to account for header */
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        
+        h2 {
+            margin-top: 0;
+            font-size: 24px;
+            font-weight: 600;
+            color: #2d4569;
+        }
+        
+        .search-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 15px;
+        }
+        
+        .search-container input {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 200px;
+        }
+        
+        .add-button {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 15px;
+        }
+        
+        .add-button button {
+            background-color: #2d4569;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        
+        .add-button button::before {
+            content: "+";
+            margin-right: 5px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        thead {
+            background-color: #f4f6f8;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        
+        th {
+            font-weight: 600;
+        }
+        
+        .treatment-name {
+            color: #3366cc;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+        
+        .pagination {
+            text-align: center;
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+        }
+        
+        .pagination a {
+            display: inline-block;
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            color: #333;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        
+        .pagination a.active {
+            background-color: #2d4569;
+            color: white;
+            border-color: #2d4569;
+        }
+        
+        .pagination a:hover:not(.active) {
+            background-color: #f4f6f8;
+        }
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 500px;
+            position: relative;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2d4569;
+        }
+        
+        .close {
+            color: #aaa;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover {
+            color: #555;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .form-row .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .form-group textarea {
+            height: 100px;
+            resize: vertical;
+        }
+        
+        .modal-footer {
+            text-align: right;
+            margin-top: 20px;
+        }
+        
+        .btn-add, .btn-update {
+            background-color: #2d4569;
+            color: white;
+            padding: 8px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        .btn-add:hover, .btn-update:hover {
+            background-color: #1f324d;
+        }
+        
+        /* Loading spinner */
+        .spinner {
+            display: none;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #2d4569;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .alert {
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="sidebar">
+        <a href="{{url_for('dentist_dashboard')}}">Dashboard</a>
+        <a href="{{url_for('dentist_patient_management')}}">Patient Management</a>
+        <a href="{{url_for('dentist_user_management')}}">User Management</a>
+        <a href="{{url_for('dentist_APPOINTMENT')}}">Appointment</a>
+        <a href="{{url_for('dentist_transactions')}}">Transactions</a>
+        <a href="#" class="active">Treatments</a>
+        <a href="{{url_for('dentist_dental_cases')}}">Dental Cases</a>
+        <a href="{{url_for('dentist_settings')}}">Settings</a>
+        <a href="{{ url_for('logout') }}">Logout</a>
+    </div>
+    
+    <div class="header">
+        <div class="header-title">Dentist | Treatments</div>
+        <div class="header-icons">
+            <span>🔔</span>
+            <span>👤</span>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="container">
+            <h2>Orthocare List of Treatments</h2>
+            
+            <div id="alert" class="alert"></div>
+            
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Search treatments...">
+            </div>
+            
+            <div class="add-button">
+                <button id="openAddModalBtn">New Treatment</button>
+            </div>
+            
+            <div id="spinner" class="spinner"></div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Treatment</th>
+                        <th>Description</th>
+                        <th>No. of Sessions</th>
+                        <th>Estimated Duration</th>
+                        <th>Price</th>
+                    </tr>
+                </thead>
+                <tbody id="treatmentsTable">
+                    
+                </tbody>
+            </table>
+            
+            <div class="pagination" id="pagination">
+               
+            </div>
+        </div>
+    </div>
+    
+    
+    <div id="addTreatmentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">New Treatment</div>
+                <span class="close" id="closeAddModal">&times;</span>
+            </div>
+            <form id="addTreatmentForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="treatmentName">Treatment</label>
+                        <input type="text" id="treatmentName" name="treatmentName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="estimatedDuration">Estimated Duration</label>
+                        <input type="text" id="estimatedDuration" name="estimatedDuration" required placeholder="e.g. 1-2 hours">
+                    </div>
+                    <div class="form-group">
+                        <label for="noOfSessions">No. of Sessions</label>
+                        <input type="text" id="noOfSessions" name="noOfSessions" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="treatmentPrice">Treatment Price</label>
+                        <input type="text" id="treatmentPrice" name="treatmentPrice" required placeholder="e.g. 5000">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" name="description" required></textarea>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="submit" class="btn-add">+ Add</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+   
+    <div id="editTreatmentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Edit Treatment</div>
+                <span class="close" id="closeEditModal">&times;</span>
+            </div>
+            <form id="editTreatmentForm">
+                <input type="hidden" id="editTreatmentId" name="treatmentId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editTreatmentName">Treatment</label>
+                        <input type="text" id="editTreatmentName" name="treatmentName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editEstimatedDuration">Estimated Duration</label>
+                        <input type="text" id="editEstimatedDuration" name="estimatedDuration" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editNoOfSessions">No. of Sessions</label>
+                        <input type="text" id="editNoOfSessions" name="noOfSessions" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editTreatmentPrice">Treatment Price</label>
+                        <input type="text" id="editTreatmentPrice" name="treatmentPrice" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editDescription">Description</label>
+                    <textarea id="editDescription" name="description" required></textarea>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="submit" class="btn-update">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        
+        const addModal = document.getElementById("addTreatmentModal");
+        const editModal = document.getElementById("editTreatmentModal");
+        const openAddModalBtn = document.getElementById("openAddModalBtn");
+        const closeAddModalBtn = document.getElementById("closeAddModal");
+        const closeEditModalBtn = document.getElementById("closeEditModal");
+        const addTreatmentForm = document.getElementById("addTreatmentForm");
+        const editTreatmentForm = document.getElementById("editTreatmentForm");
+        const treatmentsTable = document.getElementById("treatmentsTable");
+        const searchInput = document.getElementById("searchInput");
+        const spinner = document.getElementById("spinner");
+        const alert = document.getElementById("alert");
+        
+        
+        let currentPage = 1;
+        let treatmentsPerPage = 10;
+        let allTreatments = [];
+        let filteredTreatments = [];
+        
+        
+        function formatPrice(price) {
+            return `P${parseFloat(price).toLocaleString('en-PH', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        }
+        
+       
+        function showSpinner() {
+            spinner.style.display = "block";
+        }
+        
+        function hideSpinner() {
+            spinner.style.display = "none";
+        }
+        
+      
+        function showAlert(message, type) {
+            alert.textContent = message;
+            alert.className = `alert alert-${type}`;
+            alert.style.display = "block";
+            
+       
+            setTimeout(() => {
+                alert.style.display = "none";
+            }, 3000);
+        }
+        
+        
+        async function fetchTreatments() {
+            showSpinner();
+            try {
+                const response = await fetch('/api/treatments');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch treatments');
+                }
+                
+                const data = await response.json();
+                allTreatments = data.treatments;
+                filteredTreatments = [...allTreatments];
+                displayTreatments();
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Failed to load treatments', 'danger');
+            } finally {
+                hideSpinner();
+            }
+        }
+        
+      
+        function displayTreatments() {
+            const treatments = filteredTreatments;
+            const startIndex = (currentPage - 1) * treatmentsPerPage;
+            const endIndex = startIndex + treatmentsPerPage;
+            const currentTreatments = treatments.slice(startIndex, endIndex);
+            
+          
+            treatmentsTable.innerHTML = '';
+            
+            if (currentTreatments.length === 0) {
+                const noDataRow = document.createElement('tr');
+                noDataRow.innerHTML = `<td colspan="5" style="text-align: center;">No treatments found</td>`;
+                treatmentsTable.appendChild(noDataRow);
+            } else {
+             
+                currentTreatments.forEach(treatment => {
+                    const row = document.createElement('tr');
+                    
+                    row.innerHTML = `
+                        <td class="treatment-name" data-id="${treatment.TREATMENT_ID}">${treatment.TREATMENT_TYPE}</td>
+                        <td>${treatment.TREATMENT_DESC}</td>
+                        <td>${treatment.NO_OF_SESSIONS} ${treatment.NO_OF_SESSIONS > 1 ? 'sessions' : 'session'}</td>
+                        <td>${treatment.ESTIMATED_DURATION}</td>
+                        <td>${formatPrice(treatment.TREATMENT_PRICE)}</td>
+                    `;
+                    
+                    treatmentsTable.appendChild(row);
+                });
+            }
+            
+            
+            updatePagination();
+            
+          
+            document.querySelectorAll('.treatment-name').forEach(treatmentName => {
+                treatmentName.addEventListener('click', function() {
+                    const treatmentId = this.getAttribute('data-id');
+                    openEditModal(treatmentId);
+                });
+            });
+        }
+        
+        
+        function updatePagination() {
+            const totalPages = Math.ceil(filteredTreatments.length / treatmentsPerPage);
+            const pagination = document.getElementById('pagination');
+            
+            pagination.innerHTML = '';
+            
+           
+            const prevLink = document.createElement('a');
+            prevLink.href = '#';
+            prevLink.textContent = '<<';
+            prevLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (currentPage > 1) {
+                    currentPage--;
+                    displayTreatments();
+                }
+            });
+            pagination.appendChild(prevLink);
+            
+        
+            for (let i = 1; i <= totalPages; i++) {
+                const pageLink = document.createElement('a');
+                pageLink.href = '#';
+                pageLink.textContent = i;
+                if (i === currentPage) {
+                    pageLink.classList.add('active');
+                }
+                pageLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    currentPage = i;
+                    displayTreatments();
+                });
+                pagination.appendChild(pageLink);
+            }
+            
+           
+            const nextLink = document.createElement('a');
+            nextLink.href = '#';
+            nextLink.textContent = '>>';
+            nextLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    displayTreatments();
+                }
+            });
+            pagination.appendChild(nextLink);
+        }
+        
+      
+        function filterTreatments() {
+            const searchTerm = searchInput.value.toLowerCase();
+            
+            if (searchTerm.trim() === '') {
+                filteredTreatments = [...allTreatments];
+            } else {
+                filteredTreatments = allTreatments.filter(treatment => 
+                    treatment.TREATMENT_TYPE.toLowerCase().includes(searchTerm) || 
+                    treatment.TREATMENT_DESC.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            currentPage = 1; 
+            displayTreatments();
+        }
+        
+     
+        async function openEditModal(treatmentId) {
+            showSpinner();
+            try {
+                const response = await fetch(`/api/treatments/${treatmentId}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch treatment details');
+                }
+                
+                const data = await response.json();
+                const treatment = data.treatment;
+                
+          
+                document.getElementById('editTreatmentId').value = treatment.TREATMENT_ID;
+                document.getElementById('editTreatmentName').value = treatment.TREATMENT_TYPE;
+                document.getElementById('editNoOfSessions').value = treatment.NO_OF_SESSIONS;
+                document.getElementById('editDescription').value = treatment.TREATMENT_DESC;
+                document.getElementById('editEstimatedDuration').value = treatment.ESTIMATED_DURATION;
+                document.getElementById('editTreatmentPrice').value = treatment.TREATMENT_PRICE;
+                
+    
+                editModal.style.display = 'block';
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Failed to load treatment details', 'danger');
+            } finally {
+                hideSpinner();
+            }
+        }
+        
+    
+        async function submitAddTreatmentForm(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(addTreatmentForm);
+            
+            showSpinner();
+            try {
+                const response = await fetch('/api/treatments/add', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('Treatment added successfully', 'success');
+                    addTreatmentForm.reset();
+                    addModal.style.display = 'none';
+                    fetchTreatments();
+                } else {
+                    showAlert(data.message || 'Failed to add treatment', 'danger');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Failed to add treatment', 'danger');
+            } finally {
+                hideSpinner();
+            }
+        }
+        
+    
+        async function submitEditTreatmentForm(e) {
+            e.preventDefault();
+            
+            const treatmentId = document.getElementById('editTreatmentId').value;
+            const formData = new FormData(editTreatmentForm);
+            
+            showSpinner();
+            try {
+                const response = await fetch(`/api/treatments/update/${treatmentId}`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('Treatment updated successfully', 'success');
+                    editModal.style.display = 'none';
+                    fetchTreatments(); 
+                } else {
+                    showAlert(data.message || 'Failed to update treatment', 'danger');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Failed to update treatment', 'danger');
+            } finally {
+                hideSpinner();
+            }
+        }
+        
+  
+        window.addEventListener('load', fetchTreatments);
+        
+        openAddModalBtn.addEventListener('click', function() {
+            addModal.style.display = 'block';
+        });
+        
+        closeAddModalBtn.addEventListener('click', function() {
+            addModal.style.display = 'none';
+        });
+        
+        closeEditModalBtn.addEventListener('click', function() {
+            editModal.style.display = 'none';
+        });
+        
+        window.addEventListener('click', function(event) {
+            if (event.target === addModal) {
+                addModal.style.display = 'none';
+            }
+            if (event.target === editModal) {
+                editModal.style.display = 'none';
+            }
+        });
+        
+        addTreatmentForm.addEventListener('submit', submitAddTreatmentForm);
+        editTreatmentForm.addEventListener('submit', submitEditTreatmentForm);
+        
+        searchInput.addEventListener('input', filterTreatments);
+    </script>
+</body>
+</html>

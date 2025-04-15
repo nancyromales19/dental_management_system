@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Orthocare - Appointments</title>
+  <title>Orthocare - Dentist Appointments</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
     * {
@@ -156,23 +156,78 @@
       background-color: #2d4569;
       color: white;
     }
+
+
+
+    .action-btn {
+      background-color: #2d4569;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin: 5px ;
+    }
+        
+    .action-btn:hover {
+      background-color: #1f324d;
+    }
+
+    .search-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 15px;
+        }
+        
+        .search-container input {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 200px;
+        }
+    
+    .date-btn {
+      background-color: white;
+      color: #2d4569;
+      
+      border-width: 1px;
+      border-color: #2d4569;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+
+      width: 16%;
+
+      margin: 4px 0px;
+
+      gap: 8px; 
+    }
+
+    .date-btn img {
+      width: 16px;
+      height: 16px;
+    }
   </style>
 </head>
 <body>
 
   <div class="sidebar">
-    <a href="{{url_for('admin_dashboard')}}">Dashboard</a>
-    <a href="admin_patient_management.html">Patient Management</a>
-    <a href="{{url_for('admin_user_management')}}">User Management</a>
+    <a href="{{url_for('dentist_dashboard')}}">Dashboard</a>
+    <a href="{{url_for('dentist_patient_management')}}">Patient Management</a>
+    <a href="{{url_for('dentist_user_management')}}">User Management</a>
     <a href="#" class="active">Appointment</a>
-    <a href="#">Transactions</a>
-    <a href="#">Treatments</a>
-    <a href="#">Dental Cases</a>
-    <a href="#">Settings</a>
+    <a href="{{url_for('dentist_transactions')}}">Transactions</a>
+    <a href="{{url_for('dentist_treatments')}}">Treatments</a>
+    <a href="{{url_for('dentist_dental_cases')}}">Dental Cases</a>
+    <a href="{{url_for('dentist_settings')}}">Settings</a>
   </div>
 
   <div class="header">
-    <div class="header-title">Admin | Appointments</div>
+    <div class="header-title">Dentist | Appointments</div>
     <div class="header-icons">
       <span>🔔</span>
       <span>👤</span>
@@ -181,72 +236,87 @@
 
   <div class="main-content">
     <div class="container">
-      <h2>List of Appointments</h2>
+      <h2>My Appointments</h2>
 
-      <div class="top-buttons">
-        <button>Sort by</button>
-        <button>Generate Report</button>
+      <div class="search-container">
+        <input type="text" id="searchInput" placeholder="Search...">
       </div>
+
+      <button class="date-btn">
+        <img src="../../static/calendar-icon.png" alt="Calendar Icon">
+        <span>May 01, 2025</span>
+      </button>      
 
       <table>
         <thead>
           <tr>
             <th>PATIENT NAME</th>
-            <th>ASSIGNED DENTIST</th>
             <th>STAFF</th>
             <th>TIME OF APPT.</th>
             <th>DATE OF APPT.</th>
-            <th>STATUS</th>
+            <th>ACTION</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td>Nancy Romales</td>
-            <td>Dr. Maria Fedilga</td>
             <td>Barbie Forteza</td>
             <td>3:30 pm</td>
             <td>25-05-01</td>
-            <td class="status-approved">APPROVED</td>
+            <td>
+              <input class="action-btn" type="button" value="View Details">
+              <input class="action-btn" type="button" value="Reschedule">
+            </td>
           </tr>
           <tr>
             <td>Gary Araneta</td>
-            <td>Dr. Juanito Vince</td>
             <td>Maria Clara</td>
             <td>3:30 pm</td>
             <td>25-05-01</td>
-            <td class="status-approved">APPROVED</td>
+            <td>
+              <input class="action-btn" type="button" value="View Details">
+              <input class="action-btn" type="button" value="Reschedule">
+            </td>
           </tr>
           <tr>
             <td>Marilou Lacayon</td>
-            <td>Dr. John Paul</td>
             <td>Barbie Forteza</td>
             <td>3:30 pm</td>
             <td>25-05-01</td>
-            <td class="status-approved">APPROVED</td>
+            <td>
+              <input class="action-btn" type="button" value="View Details">
+              <input class="action-btn" type="button" value="Reschedule">
+            </td>
           </tr>
           <tr>
             <td>Ton Wenceslao</td>
-            <td>Dr. Kent Sogado</td>
             <td>Barbie Forteza</td>
             <td>3:30 pm</td>
             <td>25-05-01</td>
-            <td class="status-cancelled">CANCELLED</td>
+            <td>
+              <input class="action-btn" type="button" value="View Details">
+              <input class="action-btn" type="button" value="Reschedule">
+            </td>
           </tr>
           <tr>
             <td>Claudine Rizal</td>
-            <td>Dr. Jose Rizal</td>
             <td>Barbie Forteza</td>
             <td>3:30 pm</td>
             <td>25-05-01</td>
-            <td class="status-approved">APPROVED</td>
+            <td>
+              <input class="action-btn" type="button" value="View Details">
+              <input class="action-btn" type="button" value="Reschedule">
+            </td>
           </tr>
           <tr>
             <td>Jacob Montemar</td>
-            <td>Dr. Jherick Isokh</td>
             <td>Barbie Forteza</td>
             <td>3:30 pm</td>
             <td>25-05-01</td>
-            <td class="status-cancelled">CANCELLED</td>
+            <td>
+              <input class="action-btn" type="button" value="View Details">
+              <input class="action-btn" type="button" value="Reschedule">
+            </td>
           </tr>
         </tbody>
       </table>

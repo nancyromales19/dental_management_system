@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Orthocare - Treatments</title>
+    <title>Orthocare - Staff Treatments</title>
     <style>
         * {
             box-sizing: border-box;
@@ -318,19 +318,19 @@
 </head>
 <body>
     <div class="sidebar">
-        <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
-        <a href="#">Patient Management</a>
-        <a href="{{ url_for('admin_user_management') }}">User Management</a>
-        <a href="#">Appointment</a>
-        <a href="#">Transactions</a>
+        <a href="{{url_for('staff_dashboard')}}">Dashboard</a>
+        <a href="{{url_for('staff_patient_management')}}">Patient Management</a>
+        <a href="{{url_for('staff_user_management')}}">User Management</a>
+        <a href="{{url_for('staff_APPOINTMENT')}}">Appointment</a>
+        <a href="{{url_for('staff_transactions')}}">Transactions</a>
         <a href="#" class="active">Treatments</a>
-        <a href="#">Dental Cases</a>
-        <a href="#">Settings</a>
+        <a href="{{url_for('staff_dental_cases')}}">Dental Cases</a>
+        <a href="{{url_for('staff_settings')}}">Settings</a>
         <a href="{{ url_for('logout') }}">Logout</a>
     </div>
     
     <div class="header">
-        <div class="header-title">Admin | Treatments</div>
+        <div class="header-title">Staff | Treatments</div>
         <div class="header-icons">
             <span>🔔</span>
             <span>👤</span>
@@ -347,10 +347,12 @@
                 <input type="text" id="searchInput" placeholder="Search treatments...">
             </div>
             
+            <!--
             <div class="add-button">
                 <button id="openAddModalBtn">New Treatment</button>
             </div>
-            
+            -->
+
             <div id="spinner" class="spinner"></div>
             
             <table>
