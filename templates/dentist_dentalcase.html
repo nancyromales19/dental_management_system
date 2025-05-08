@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orthocare - Dental Cases</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+        }
+        
+        .sidebar {
+            width: 120px;
+            background-color: #2d4569;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            color: white;
+            z-index: 200;
+        }
+        
+        .sidebar a {
+            display: block;
+            padding: 12px 10px;
+            color: white;
+            text-decoration: none;
+            text-align: center;
+            font-size: 13px;
+        }
+        
+        .sidebar a:hover,
+        .sidebar a.active {
+            background-color: #1f324d;
+        }
+        
+        .header {
+            background-color: #2d4569;
+            color: white;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            right: 0;
+            left: 0;
+            z-index: 100;
+            height: 50px;
+        }
+        
+        .header-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-left: 120px;
+        }
+        
+        .header-icons {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .notification-icon {
+            font-size: 18px;
+        }
+        
+        .user-icon {
+            width: 32px;
+            height: 32px;
+            background-color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #2d4569;
+            font-weight: bold;
+        }
+        
+        .main-content {
+            margin-left: 120px;
+            padding: 70px 20px 20px 20px;
+            background-color: #e6eaef;
+            min-height: 100vh;
+        }
+        
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .btn-print {
+            background-color: #b8c4d8;
+            color: #2d4569;
+        }
+        
+        .btn-new {
+            background-color: #2d4569;
+            color: white;
+            text-transform: uppercase;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .search-bar {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 250px;
+        }
+        
+        .info-section {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .info-box {
+            background-color: white;
+            border-radius: 4px;
+            padding: 10px 15px;
+            flex-grow: 1;
+            margin-right: 10px;
+        }
+        
+        .info-box:last-child {
+            margin-right: 0;
+        }
+        
+        .info-label {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .info-value {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .main-panel {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .patient-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 15px;
+        }
+        
+        .patient-name {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 15px;
+        }
+        
+        .patient-info {
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        .patient-info label {
+            font-weight: 500;
+            display: inline-block;
+            width: 100px;
+        }
+        
+        .status-section {
+            margin-top: 20px;
+        }
+        
+        .status-label {
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+        
+        .status-dropdown {
+            width: 100%;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        
+        .observations-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 15px;
+        }
+        
+        .observations-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .observations-title {
+            font-size: 16px;
+            font-weight: 500;
+        }
+        
+        .btn-add {
+            background-color: #3a5886;
+            color: white;
+            font-size: 12px;
+            padding: 5px 10px;
+        }
+        
+        .observation-item {
+            padding: 8px 0;
+            border-bottom: 1px dotted #ccc;
+            font-size: 14px;
+        }
+        
+        .bottom-panels {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        
+        .panel-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 15px;
+        }
+        
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .panel-title {
+            font-size: 16px;
+            font-weight: 500;
+        }
+        
+        .attachment-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+        
+        .treatment-item, .history-item {
+            padding: 8px 0;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .treatment-item:before, .history-item:before {
+            content: "•";
+            margin-right: 8px;
+            font-weight: bold;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        .page-btn {
+            background-color: #eee;
+            border: 1px solid #ccc;
+            padding: 5px 10px;
+            margin: 0 5px;
+            cursor: pointer;
+        }
+        
+        .page-btn.active {
+            background-color: #2d4569;
+            color: white;
+        }
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 400px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover {
+            color: black;
+        }
+        
+        .modal-title {
+            font-size: 18px;
+            font-weight: 500;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .btn-cancel {
+            background-color: #ccc;
+            color: #333;
+        }
+        
+        .btn-save {
+            background-color: #2d4569;
+            color: white;
+        }
+        
+        .file-preview {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 15px 0;
+        }
+        
+        .file-preview img, .file-preview video {
+            max-width: 100%;
+            max-height: 200px;
+            margin-bottom: 10px;
+        }
+        
+        .file-name {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        /* Attachment styles */
+        .attachment-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .attachment-name {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .attachment-icon {
+            font-size: 16px;
+        }
+        
+        .attachment-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-view, .btn-delete {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .btn-view {
+            color: #2d4569;
+        }
+        
+        .btn-delete {
+            color: #d32f2f;
+        }
+        
+        /* File type indicator */
+        .file-type {
+            font-size: 10px;
+            padding: 2px 5px;
+            border-radius: 3px;
+            margin-left: 5px;
+        }
+        
+        .file-type-image {
+            background-color: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .file-type-video {
+            background-color: #ffebee;
+            color: #d32f2f;
+        }
+        
+        /* File viewer modal */
+        .file-viewer-modal {
+            display: none;
+            position: fixed;
+            z-index: 1001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.8);
+        }
+        
+        .file-viewer-content {
+            position: relative;
+            margin: 5% auto;
+            width: 80%;
+            max-width: 800px;
+            text-align: center;
+        }
+        
+        .file-viewer-close {
+            position: absolute;
+            top: -30px;
+            right: 0;
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .file-viewer-media {
+            max-width: 100%;
+            max-height: 80vh;
+            margin: auto;
+        }
+    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/w3.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="header">
+        <div class="header-title">Dentist | Dental Cases</div>
+        <div class="header-icons">
+            <div class="notification-icon">🔔</div>
+            <div class="user-icon">D</div>
+        </div>
+    </div>
+    
+    <div class="sidebar">
+        <a href="#" style="margin-top:50px;">Dashboard</a>
+        <a href="#">Patient Management</a>
+        <a href="#">Appointment</a>
+        <a href="#">Transactions</a>
+        <a href="#">Treatments</a>
+        <a href="#" class="active">Dental Cases</a>
+        <a href="#">Settings</a>
+        <a href="#">Log out</a>
+    </div>
+    
+    <div class="main-content">
+        <div class="toolbar">
+            <button class="btn btn-print">
+                <span>🖨️</span> Print
+            </button>
+            <button class="btn btn-new">+ NEW DENTAL CASE</button>
+            <input type="text" class="search-bar" placeholder="Search by patient name..." id="patientSearch">
+        </div>
+        
+        <div class="info-section">
+            <div class="info-box">
+                <div class="info-label">Total Payment:</div>
+                <div class="info-value">₱5,657.50</div>
+            </div>
+            <div class="info-box">
+                <div class="info-label">Balance:</div>
+                <div class="info-value">0.00</div>
+            </div>
+            <div class="info-box">
+                <div class="info-label">Case Date:</div>
+                <div class="info-value">2025-03-12</div>
+            </div>
+        </div>
+        
+        <div class="main-panel">
+            <div class="patient-card">
+                <div class="patient-name">Nancy Fiel Romales</div>
+                <div class="patient-info">
+                    <label>Case no.:</label> 1
+                </div>
+                <div class="patient-info">
+                    <label>Contact no.:</label> 9310159072
+                </div>
+                <div class="patient-info">
+                    <label>Email address:</label> lara@3email.com
+                </div>
+                
+                <div class="status-section">
+                    <div class="status-label">Status</div>
+                    <select class="status-dropdown">
+                        <option>Completed</option>
+                        <option selected>Ongoing</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="observations-card">
+                <div class="observations-header">
+                    <div class="observations-title">Observations</div>
+                    <button class="btn btn-add">+ ADD</button>
+                </div>
+                <div class="observation-item">• In the molar blah blah blah .....................................................</div>
+                <div class="observation-item">• In the molar blah blah blah .....................................................</div>
+                <div class="observation-item">• In the molar blah blah blah .....................................................</div>
+                <div class="observation-item">• In the molar blah blah blah .....................................................</div>
+            </div>
+        </div>
+        
+        <div class="bottom-panels">
+            <div class="panel-card" id="attachments-panel">
+                <div class="panel-header">
+                    <div class="panel-title">Attachments</div>
+                    <button class="btn btn-add" id="add-attachment-btn">+ ADD</button>
+                </div>
+                <div class="attachment-item">
+                    <div class="attachment-name">
+                        <span>📷</span>
+                        <span>x-ray.jpg</span>
+                        <span class="file-type file-type-image">IMAGE</span>
+                    </div>
+                    <div class="attachment-actions">
+                        <button class="btn-view" data-file="x-ray.jpg" data-type="image">👁️</button>
+                        <button class="btn-delete">🗑️</button>
+                    </div>
+                </div>
+                <div class="attachment-item">
+                    <div class="attachment-name">
+                        <span>📷</span>
+                        <span>1st_month.jpg</span>
+                        <span class="file-type file-type-image">IMAGE</span>
+                    </div>
+                    <div class="attachment-actions">
+                        <button class="btn-view" data-file="1st_month.jpg" data-type="image">👁️</button>
+                        <button class="btn-delete">🗑️</button>
+                    </div>
+                </div>
+                <div class="attachment-item">
+                    <div class="attachment-name">
+                        <span>📷</span>
+                        <span>2nd_month.jpg</span>
+                        <span class="file-type file-type-image">IMAGE</span>
+                    </div>
+                    <div class="attachment-actions">
+                        <button class="btn-view" data-file="2nd_month.jpg" data-type="image">👁️</button>
+                        <button class="btn-delete">🗑️</button>
+                    </div>
+                </div>
+                <div class="attachment-item">
+                    <div class="attachment-name">
+                        <span>📷</span>
+                        <span>3rd_month.jpg</span>
+                        <span class="file-type file-type-image">IMAGE</span>
+                    </div>
+                    <div class="attachment-actions">
+                        <button class="btn-view" data-file="3rd_month.jpg" data-type="image">👁️</button>
+                        <button class="btn-delete">🗑️</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="panel-card">
+                <div class="panel-header">
+                    <div class="panel-title">Treatments Applied</div>
+                    <button class="btn btn-add">+ ADD</button>
+                </div>
+                <div class="treatment-item">Teeth Cleaning</div>
+                <div class="treatment-item">Veneers</div>
+                <div class="treatment-item">Tooth Extraction</div>
+            </div>
+            
+            <div class="panel-card">
+                <div class="panel-header">
+                    <div class="panel-title">Patient History</div>
+                    <button class="btn btn-add">+ ADD</button>
+                </div>
+                <div class="history-item">Had braces before</div>
+                <div class="history-item">Had gingivitis remove</div>
+            </div>
+        </div>
+        
+        <div class="pagination">
+            <button class="page-btn">«</button>
+            <button class="page-btn active">1</button>
+            <button class="page-btn">2</button>
+            <button class="page-btn">»</button>
+        </div>
+    </div>
+    
+    <!-- Add Attachment Modal -->
+    <div id="attachment-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Add New Attachment</div>
+                <span class="close">&times;</span>
+            </div>
+            <form id="attachment-form">
+                <div class="form-group">
+                    <label for="attachment-name">File Name</label>
+                    <input type="text" id="attachment-name" class="form-control" placeholder="Enter file name" required>
+                </div>
+                <div class="form-group">
+                    <label for="attachment-file">Select File</label>
+                    <input type="file" id="attachment-file" class="form-control" accept="image/*,video/*" required>
+                    <small>Supported file types: Images (.jpg, .png, .gif), Videos (.mp4, .webm)</small>
+                </div>
+                <div class="file-preview" id="file-preview">
+                    <!-- Preview will be shown here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-cancel" id="cancel-attachment">Cancel</button>
+                    <button type="submit" class="btn btn-save">Save Attachment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- Observation Modal -->
+    <div id="observation-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Add New Observation</div>
+                <span class="close">&times;</span>
+            </div>
+            <form id="observation-form">
+                <div class="form-group">
+                    <label for="observation-text">Observation Details</label>
+                    <textarea id="observation-text" class="form-control" rows="4" placeholder="Enter observation details" required></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-cancel" id="cancel-observation">Cancel</button>
+                    <button type="submit" class="btn btn-save">Save Observation</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- File Viewer Modal -->
+    <div id="file-viewer-modal" class="file-viewer-modal">
+        <div class="file-viewer-content">
+            <span class="file-viewer-close">&times;</span>
+            <div id="file-viewer-container">
+                <!-- File will be displayed here -->
+            </div>
+        </div>
+    </div>
+    
+    <script>
+            // Observation modal functionality
+    const observationModal = document.getElementById('observation-modal');
+    const addObservationBtn = document.querySelector('.observations-header .btn-add');
+    const closeObservationBtn = observationModal.querySelector('.close');
+    const cancelObservationBtn = document.getElementById('cancel-observation');
+    const observationForm = document.getElementById('observation-form');
+    const observationsCard = document.querySelector('.observations-card');
+    
+    // Open observation modal
+    addObservationBtn.addEventListener('click', function() {
+        observationModal.style.display = 'block';
+    });
+    
+    // Close observation modal
+    closeObservationBtn.addEventListener('click', function() {
+        observationModal.style.display = 'none';
+        resetObservationForm();
+    });
+    
+    cancelObservationBtn.addEventListener('click', function() {
+        observationModal.style.display = 'none';
+        resetObservationForm();
+    });
+    
+    // Close modal when clicking outside
+    window.addEventListener('click', function(event) {
+        if (event.target === observationModal) {
+            observationModal.style.display = 'none';
+            resetObservationForm();
+        }
+    });
+    
+    // Reset observation form
+    function resetObservationForm() {
+        observationForm.reset();
+    }
+    
+    // Form submission
+    observationForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const observationText = document.getElementById('observation-text').value.trim();
+        if (!observationText) {
+            alert('Please enter observation details');
+            return;
+        }
+        
+        // Create a new observation item
+        const observationItem = document.createElement('div');
+        observationItem.className = 'observation-item';
+        observationItem.textContent = '• ' + observationText;
+        
+        // Add the new item to the observations card (after the header)
+        const header = observationsCard.querySelector('.observations-header');
+        observationsCard.insertBefore(observationItem, header.nextSibling);
+        
+        // Close modal and reset form
+        observationModal.style.display = 'none';
+        resetObservationForm();
+        
+        // Show success message
+        alert('Observation added successfully!');
+    });
+
+        // Basic search functionality
+        document.getElementById('patientSearch').addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                const searchQuery = this.value.toLowerCase().trim();
+                // In a real application, this would search the database
+                // For demo purposes, we'll just simulate finding Nancy if the search contains 'nancy'
+                if (searchQuery.includes('nancy')) {
+                    // Nancy is already displayed, so we'll just alert that the patient was found
+                    alert("Patient found: Nancy Fiel Romales");
+                } else {
+                    alert("Patient not found. Try searching for 'Nancy'");
+                }
+            }
+        });
+        
+        // Add event listeners for the non-attachment add buttons
+        document.querySelectorAll('.btn-add:not(#add-attachment-btn)').forEach(button => {
+            button.addEventListener('click', function() {
+                const panelTitle = this.closest('.panel-header').querySelector('.panel-title').textContent;
+                alert(`Add new ${panelTitle} entry`);
+            });
+        });
+        
+        // Status dropdown change handler
+        document.querySelector('.status-dropdown').addEventListener('change', function() {
+            alert(`Case status updated to: ${this.value}`);
+        });
+        
+        // Pagination functionality
+        document.querySelectorAll('.page-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                if (!this.classList.contains('active')) {
+                    document.querySelector('.page-btn.active').classList.remove('active');
+                    this.classList.add('active');
+                    alert(`Navigated to page ${this.textContent}`);
+                }
+            });
+        });
+        
+        // Attachment modal functionality
+        const attachmentModal = document.getElementById('attachment-modal');
+        const addAttachmentBtn = document.getElementById('add-attachment-btn');
+        const closeModalBtn = attachmentModal.querySelector('.close');
+        const cancelAttachmentBtn = document.getElementById('cancel-attachment');
+        const attachmentForm = document.getElementById('attachment-form');
+        const fileInput = document.getElementById('attachment-file');
+        const filePreview = document.getElementById('file-preview');
+        const attachmentsPanel = document.getElementById('attachments-panel');
+        
+        // Open attachment modal
+        addAttachmentBtn.addEventListener('click', function() {
+            attachmentModal.style.display = 'block';
+        });
+        
+        // Close attachment modal
+        closeModalBtn.addEventListener('click', function() {
+            attachmentModal.style.display = 'none';
+            resetForm();
+        });
+        
+        cancelAttachmentBtn.addEventListener('click', function() {
+            attachmentModal.style.display = 'none';
+            resetForm();
+        });
+        
+        // Close modal when clicking outside
+        window.addEventListener('click', function(event) {
+            if (event.target === attachmentModal) {
+                attachmentModal.style.display = 'none';
+                resetForm();
+            }
+        });
+        
+        // File input change handler - display preview
+        fileInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                filePreview.innerHTML = '';
+                
+                if (file.type.startsWith('image/')) {
+                    // Create image preview
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    filePreview.appendChild(img);
+                } else if (file.type.startsWith('video/')) {
+                    // Create video preview
+                    const video = document.createElement('video');
+                    video.src = e.target.result;
+                    video.controls = true;
+                    filePreview.appendChild(video);
+                }
+                
+                const fileName = document.createElement('div');
+                fileName.className = 'file-name';
+                fileName.textContent = file.name;
+                filePreview.appendChild(fileName);
+            };
+            
+            reader.readAsDataURL(file);
+        });
+        
+        // Form submission
+        attachmentForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const file = fileInput.files[0];
+            if (!file) {
+                alert('Please select a file');
+                return;
+            }
+            
+            const fileName = document.getElementById('attachment-name').value || file.name;
+            const fileType = file.type.startsWith('image/') ? 'image' : 'video';
+            const currentDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+            
+            // Create a new attachment item
+            const attachmentItem = document.createElement('div');
+            attachmentItem.className = 'attachment-item';
+            
+            attachmentItem.innerHTML = `
+                <div class="attachment-name">
+                    <span>${fileType === 'image' ? '📷' : '🎬'}</span>
+                    <span>${fileName}</span>
+                    <span class="file-type file-type-${fileType}">${fileType.toUpperCase()}</span>
+                </div>
+                <div class="attachment-actions">
+                    <button class="btn-view" data-file="${fileName}" data-type="${fileType}">👁️</button>
+                    <button class="btn-delete">🗑️</button>
+                </div>
+            `;
+            
+            // Add the new item to the attachments panel
+            attachmentsPanel.appendChild(attachmentItem);
+            
+            // Add event listeners to the new buttons
+            attachmentItem.querySelector('.btn-view').addEventListener('click', handleFileView);
+            attachmentItem.querySelector('.btn-delete').addEventListener('click', handleFileDelete);
+            
+            // Close modal and reset form
+            attachmentModal.style.display = 'none';
+            resetForm();
+            
+            // Show success message
+            alert(`File "${fileName}" uploaded successfully!`);
+        });
+        
+        // Reset form
+        function resetForm() {
+            attachmentForm.reset();
+            filePreview.innerHTML = '';
+        }
+        
+        // File view functionality
+        const fileViewerModal = document.getElementById('file-viewer-modal');
+        const fileViewerClose = document.querySelector('.file-viewer-close');
+        const fileViewerContainer = document.getElementById('file-viewer-container');
+        
+        // Initial view buttons
+        document.querySelectorAll('.btn-view').forEach(button => {
+            button.addEventListener('click', handleFileView);
+        });
+        
+        function handleFileView() {
+            const fileName = this.getAttribute('data-file');
+            const fileType = this.getAttribute('data-type');
+            
+            fileViewerContainer.innerHTML = '';
+            
+            // In a real application, we would fetch the actual file
+            // For demo purposes, we'll use placeholder images/videos
+            if (fileType === 'image') {
+                const img = document.createElement('img');
+                img.src = "/api/placeholder/800/600";
+                img.alt = fileName;
+                img.className = 'file-viewer-media';
+                fileViewerContainer.appendChild(img);
+            } else if (fileType === 'video') {
+                const video = document.createElement('video');
+                video.src = ""; // We'd need a placeholder video in a real app
+                video.controls = true;
+                video.className = 'file-viewer-media';
+                fileViewerContainer.appendChild(video);
+                
+                // Since we don't have a real video, show a message
+                const message = document.createElement('div');
+                message.style.color = 'white';
+                message.textContent = `Video: ${fileName} would play here`;
+                fileViewerContainer.appendChild(message);
+            }
+            
+            fileViewerModal.style.display = 'block';
+        }
+        
+        // Close file viewer
+        fileViewerClose.addEventListener('click', function() {
+            fileViewerModal.style.display = 'none';
+        });
+        
+        // Close file viewer when clicking outside
+        window.addEventListener('click', function(event) {
+            if (event.target === fileViewerModal) {
+                fileViewerModal.style.display = 'none';
+            }
+        });
+        
+        // Delete file functionality
+        document.querySelectorAll('.btn-delete').forEach(button => {
+            button.addEventListener('click', handleFileDelete);
+        });
+        
+        function handleFileDelete() {
+            const attachmentItem = this.closest('.attachment-item');
+            const fileName = attachmentItem.querySelector('.attachment-name span:nth-child(2)').textContent;
+            
+            if (confirm(`Are you sure you want to delete "${fileName}"?`)) {
+                attachmentItem.remove();
+            }
+        }
+        
+    </script>
+</body>
+</html>

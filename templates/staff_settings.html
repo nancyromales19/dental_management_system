@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orthocare - Staff Settings</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+        }
+        
+        .header {
+            background-color: #2d4569;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: fixed;
+            top: 0;
+            right: 0;
+            left: 250px; /* Make space for sidebar */
+            z-index: 100;
+            height: 50px;
+        }
+        
+        .header-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .header-icons {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .sidebar {
+            width: 250px;
+            background-color: #2d4569;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            color: white;
+            z-index: 200;
+        }
+        
+        .sidebar a {
+            display: block;
+            padding: 15px 20px;
+            color: white;
+            text-decoration: none;
+            border-left: 4px solid transparent;
+        }
+        
+        .sidebar a:hover,
+        .sidebar a.active {
+            background-color: #1f324d;
+            border-left: 4px solid #92b4d3;
+        }
+        
+        .main-content {
+            margin-left: 250px;
+            padding: 70px 20px 20px 20px; /* Add top padding to account for header */
+        }
+
+        .settings-container {
+            background-color: #c7d3e3;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .settings-title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #000;
+            margin-bottom: 20px;
+        }
+        
+        .profile-section {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 30px;
+        }
+        
+        .profile-image {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 20px;
+        }
+        
+        .profile-info {
+            flex: 1;
+        }
+        
+        .profile-name {
+            font-size: 20px;
+            font-weight: bold;
+            color: #000;
+        }
+        
+        .profile-role {
+            color: #666;
+            font-size: 16px;
+            margin-top: 5px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .info-field {
+            margin-bottom: 15px;
+        }
+        
+        .field-label {
+            display: block;
+            color: #444;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+        
+        .field-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            color: #333;
+        }
+        
+        .field-input:disabled {
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        
+        .password-section {
+            margin-top: 30px;
+        }
+        
+        .password-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #000;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            background-color: #2d4569;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            transition: background-color 0.2s;
+        }
+        
+        .btn:hover {
+            background-color: #1f324d;
+        }
+
+        .save-btn-container {
+            margin-top: 20px;
+            text-align: right;
+            display: none;
+        }
+        
+        .save-btn {
+            min-width: 100px;
+        }
+
+        .profile-edit-btn {
+            position: absolute;
+            top: 90px;
+            right: 40px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+        }
+        
+        .edit-icon {
+            width: 24px;
+            height: 24px;
+            background-color: white;
+            border-radius: 4px;
+            padding: 2px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+
+        .flash-message {
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        .flash-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .flash-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .flash-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .flash-warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/w3.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="sidebar">
+        <!-- Update links to use url_for with actual route names -->
+        <a href="{{ url_for('staff_dashboard') }}" style="margin-top:50px;">Dashboard</a>
+        <a href="{{url_for('staff_patient_management')}}">Patient Management</a>
+        <a href="#">User Management</a>
+        <a href="#">Appointment</a>
+        <a href="#">Transactions</a>
+        <a href="#">Treatments</a>
+        <a href="#" class="active">Settings</a>
+        <a href="{{ url_for('logout') }}">Logout</a>
+    </div>
+    
+    <div class="header">
+        <div class="header-title">Staff | Settings</div>
+        <div class="header-icons">
+            <span>🔔</span>
+            <span>👤</span>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash-message flash-{{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        <div class="settings-container">
+            <h1 class="settings-title">Settings</h1>
+            
+            <div class="profile-section">
+                <img src="{{ user_img or '/static/uploads/default-profile.jfif' }}" alt="Profile" class="profile-image" id="profileImage">
+                <div class="profile-info">
+                    <h2 class="profile-name">{{ user_fname }} {{ user_lname }}</h2>
+                    <p class="profile-role">{{ user_role }}</p>
+                </div>
+                <button class="profile-edit-btn" id="editBtn">
+                    <img src="/static/icons/edit-icon.svg" alt="Edit" class="edit-icon" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'20\' height=\'20\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23000\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><path d=\'M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z\'></path></svg>'">
+                </button>
+            </div>
+            
+            <form id="profileForm" action="{{ url_for('update_profile') }}" method="POST" enctype="multipart/form-data">
+                <div class="info-grid">
+                    <div class="info-field">
+                        <label class="field-label">LASTNAME</label>
+                        <input type="text" class="field-input" name="lastname" value="{{ user_lname }}" disabled>
+                    </div>
+                    
+                    <div class="info-field">
+                        <label class="field-label">FIRSTNAME</label>
+                        <input type="text" class="field-input" name="firstname" value="{{ user_fname }}" disabled>
+                    </div>
+                    
+                    <div class="info-field">
+                        <label class="field-label">PHONE NUMBER</label>
+                        <input type="text" class="field-input" name="phone" value="{{ phone_number }}" disabled>
+                    </div>
+                    
+                    <div class="info-field">
+                        <label class="field-label">EMAIL ADDRESS</label>
+                        <input type="email" class="field-input" name="email" value="{{ email or 'N/A' }}" disabled>
+                    </div>
+                </div>
+                
+                <div class="password-section">
+                    <h3 class="password-title">Change Password ?</h3>
+                    
+                    <div class="info-grid">
+                        <div class="info-field">
+                            <label class="field-label">NEW PASSWORD</label>
+                            <input type="password" class="field-input" name="new_password" disabled>
+                        </div>
+                        
+                        <div class="info-field">
+                            <label class="field-label">RE-ENTER PASSWORD</label>
+                            <input type="password" class="field-input" name="confirm_password" disabled>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="save-btn-container" id="saveBtnContainer">
+                    <button type="submit" class="btn save-btn">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const editBtn = document.getElementById('editBtn');
+            const formInputs = document.querySelectorAll('.field-input');
+            const saveBtnContainer = document.getElementById('saveBtnContainer');
+            const profileForm = document.getElementById('profileForm');
+            const profileImage = document.getElementById('profileImage');
+            
+            // Add pointer cursor to profile image
+            profileImage.style.cursor = 'default';
+            
+            // Enable editing of profile fields
+            editBtn.addEventListener('click', function() {
+                // Enable all form inputs except username which should remain fixed
+                formInputs.forEach(input => {
+                    if (input.name !== 'username') {
+                        input.disabled = false;
+                        
+                        // Special handling for email field with 'N/A'
+                        if (input.name === 'email' && input.value === 'N/A') {
+                            input.value = ''; // Clear N/A to make it easier to enter real email
+                        }
+                    }
+                });
+                
+                // Show the save button
+                saveBtnContainer.style.display = 'block';
+                
+                // Make profile image clickable with visual indicator
+                profileImage.style.cursor = 'pointer';
+                profileImage.title = 'Click to upload new profile picture';
+            });
+            
+            // Form validation before submit
+            profileForm.addEventListener('submit', function(event) {
+                const newPassword = document.querySelector('input[name="new_password"]');
+                const confirmPassword = document.querySelector('input[name="confirm_password"]');
+                
+                // Reset previous error messages
+                document.querySelectorAll('.error-message').forEach(el => el.remove());
+                
+                // If password fields have content, validate they match
+                if (newPassword.value || confirmPassword.value) {
+                    if (newPassword.value !== confirmPassword.value) {
+                        event.preventDefault();
+                        
+                        // Display error message
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'error-message';
+                        errorDiv.style.color = 'red';
+                        errorDiv.style.marginTop = '5px';
+                        errorDiv.textContent = 'Passwords do not match!';
+                        
+                        confirmPassword.parentNode.appendChild(errorDiv);
+                        return false;
+                    }
+                    
+                    // Check password length
+                    if (newPassword.value.length < 6) {
+                        event.preventDefault();
+                        
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'error-message';
+                        errorDiv.style.color = 'red';
+                        errorDiv.style.marginTop = '5px';
+                        errorDiv.textContent = 'Password must be at least 6 characters!';
+                        
+                        newPassword.parentNode.appendChild(errorDiv);
+                        return false;
+                    }
+                }
+                
+                // Validate email format but only if it's not empty
+                const emailInput = document.querySelector('input[name="email"]');
+                if (emailInput.value && emailInput.value !== 'N/A') {
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!emailRegex.test(emailInput.value)) {
+                        event.preventDefault();
+                        
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'error-message';
+                        errorDiv.style.color = 'red';
+                        errorDiv.style.marginTop = '5px';
+                        errorDiv.textContent = 'Please enter a valid email address!';
+                        
+                        emailInput.parentNode.appendChild(errorDiv);
+                        return false;
+                    }
+                }
+                
+                // Set empty email back to null for database
+                if (emailInput.value === '') {
+                    emailInput.value = 'N/A';
+                }
+                
+                // Validate phone number (simple validation)
+                const phoneInput = document.querySelector('input[name="phone"]');
+                if (phoneInput.value) {
+                    const phoneRegex = /^\d{9,15}$/;
+                    if (!phoneRegex.test(phoneInput.value.replace(/[-()\s]/g, ''))) {
+                        event.preventDefault();
+                        
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'error-message';
+                        errorDiv.style.color = 'red';
+                        errorDiv.style.marginTop = '5px';
+                        errorDiv.textContent = 'Please enter a valid phone number!';
+                        
+                        phoneInput.parentNode.appendChild(errorDiv);
+                        return false;
+                    }
+                }
+            });
+            
+            // Profile image upload functionality
+            profileImage.addEventListener('click', function() {
+                // Only allow clicking the image when in edit mode
+                if (!formInputs[0].disabled) {
+                    const fileInput = document.createElement('input');
+                    fileInput.type = 'file';
+                    fileInput.accept = 'image/*';
+                    fileInput.name = 'profile_image';
+                    fileInput.style.display = 'none';
+                    
+                    // Add the file input to the form
+                    profileForm.appendChild(fileInput);
+                    
+                    fileInput.addEventListener('change', function(e) {
+                        if (this.files && this.files[0]) {
+                            const reader = new FileReader();
+                            
+                            reader.onload = function(e) {
+                                profileImage.src = e.target.result;
+                            }
+                            
+                            reader.readAsDataURL(this.files[0]);
+                        }
+                    });
+                    
+                    fileInput.click();
+                }
+            });
+            
+            // Auto-hide flash messages after 5 seconds
+            setTimeout(function() {
+                const flashMessages = document.querySelectorAll('.flash-message');
+                flashMessages.forEach(function(message) {
+                    message.style.transition = 'opacity 1s';
+                    message.style.opacity = '0';
+                    setTimeout(function() {
+                        message.style.display = 'none';
+                    }, 1000);
+                });
+            }, 5000);
+        });
+    </script>
+</body>
+</html>

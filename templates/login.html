@@ -3,33 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/w3.css') }}">
     <title>Orthocare - Dental Appointment Schedule</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
             margin: 0;
-            background-color: #f5f5f5;
+            background-image: url('{{ url_for("static", filename="background.png") }}');
+            background-size: cover;
+            background-position: center;
+            height: 100vh;
+            display: flex;
+            align-items: center;
         }
 
         .container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
             width: 100%;
-            max-width: 800px;
-            margin-right: 1px;
-        }
-
-        .logo-container {
-            margin-right: 20px;
-        }
-
-        .logo {
-            width: 250px;
+            display: flex;
+            justify-content: flex-end;
+            padding-right: 50px;
         }
 
         .login-form {
@@ -100,6 +92,10 @@
             color: #2d4569;
         }
 
+        .forgot-password {
+            text-align: right;
+        }
+
         .forgot-password a {
             color: #2d4569;
             text-decoration: none;
@@ -137,9 +133,6 @@
 </head>
 <body>
     <div class="container">
-        <div class="logo-container">
-            <img src="{{ url_for('static', filename='logo.png') }}" alt="Orthocare Dental" class="logo">
-        </div>
         <div class="login-form">
             <h1>SIGN IN</h1>
             <form action="/login" method="POST">
@@ -151,7 +144,7 @@
                     <label for="password"><b>Password :</b></label>
                     <div class="password-container">
                         <input type="password" id="password" name="password" required>
-                        <span class="password-toggle">
+                        <span class="password-toggle" id="password-toggle">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                                 <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/>
                                 <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/>
@@ -178,12 +171,45 @@
     </div>
 
     <script>
-        document.querySelector('.password-toggle').addEventListener('click', function() {
+        // Password visibility toggle functionality
+        document.getElementById('password-toggle').addEventListener('click', function() {
             const passwordInput = document.getElementById('password');
             if (passwordInput.type === 'password') {
                 passwordInput.type = 'text';
             } else {
                 passwordInput.type = 'password';
+            }
+        });
+        
+        // Remember me checkbox functionality
+        document.getElementById('remember').addEventListener('change', function() {
+            // Store the checkbox state in localStorage when it's changed
+            localStorage.setItem('rememberMe', this.checked);
+        });
+        
+        // Check if the remember me preference was previously saved
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get the remembered state from localStorage
+            const rememberMe = localStorage.getItem('rememberMe') === 'true';
+            document.getElementById('remember').checked = rememberMe;
+            
+            // If remember me was checked, also restore the username if it was saved
+            if (rememberMe) {
+                const savedUsername = localStorage.getItem('username');
+                if (savedUsername) {
+                    document.getElementById('username').value = savedUsername;
+                }
+            }
+        });
+        
+        // Save username when form is submitted if remember me is checked
+        document.querySelector('form').addEventListener('submit', function(e) {
+            if (document.getElementById('remember').checked) {
+                localStorage.setItem('username', document.getElementById('username').value);
+            } else {
+                // If remember me is unchecked, clear the saved data
+                localStorage.removeItem('username');
+                localStorage.removeItem('rememberMe');
             }
         });
     </script>

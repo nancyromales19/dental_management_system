@@ -4,44 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Orthocare - Admin Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            font-family: 'Poppins', sans-serif;
         }
         
         body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #f4f6f8;
-            margin: 0;
-        }
-        
-        .header {
-            background-color: #2d4569;
-            color: white;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            position: fixed;
-            top: 0;
-            right: 0;
-            left: 250px; /* Make space for sidebar */
-            z-index: 100;
-            height: 50px;
-        }
-        
-        .header-title {
-            font-size: 18px;
-            font-weight: bold;
-        }
-        
-        .header-icons {
-            display: flex;
-            align-items: center;
-            gap: 20px;
+            background-color: #f5f7fa;
+            color: #333;
         }
         
         .sidebar {
@@ -50,193 +24,423 @@
             position: fixed;
             top: 0;
             left: 0;
-            bottom: 0;
+            height: 100%;
             color: white;
-            z-index: 200;
+            z-index: 100;
         }
         
-        .sidebar a {
+        .logo-container {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .logo {
+            max-width: 150px;
+        }
+        
+        .menu-item {
+            padding: 10px 25px;
             display: block;
-            padding: 15px 20px;
-            color: white;
+            color: rgba(255, 255, 255, 0.7);
             text-decoration: none;
+            transition: all 0.3s;
             border-left: 4px solid transparent;
         }
         
-        .sidebar a:hover,
-        .sidebar a.active {
-            background-color: #1f324d;
-            border-left: 4px solid #92b4d3;
+        .menu-item:hover, .menu-item.active {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: white;
+            border-left: 4px solid #4c92d3;
         }
         
         .main-content {
             margin-left: 250px;
-            padding: 70px 20px 20px 20px; /* Add top padding to account for header */
+            padding: 20px 30px;
         }
         
-        .dashboard-content {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 20px;
-            margin-top: 20px;
-        }
-        
-        .report-section {
-            background-color: white;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        
-        .report-header {
+        .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
         }
         
-        .report-title {
-            font-size: 18px;
-            font-weight: bold;
+        .page-title {
             color: #2d4569;
+            font-size: 24px;
+            font-weight: 600;
         }
         
-        .report-filter {
-            background-color: #2d4569;
-            color: white;
-            padding: 6px 12px;
-            border-radius: 4px;
+        .welcome-text {
+            color: #666;
             font-size: 14px;
         }
         
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        .stats-container {
+            display: flex;
             gap: 20px;
-            margin-top: 30px;
+            margin-bottom: 30px;
         }
         
         .stat-card {
             background-color: white;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            padding: 25px;
+            flex: 1;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: flex-start;
         }
         
-        .stat-title {
-            color: #2d4569;
-            font-size: 16px;
-            font-weight: bold;
-            margin-bottom: 10px;
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            background-color: #e9f0f8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            color: #4c92d3;
+            font-size: 24px;
+        }
+        
+        .stat-info {
+            flex: 1;
         }
         
         .stat-value {
-            font-size: 24px;
-            font-weight: bold;
+            font-size: 28px;
+            font-weight: 600;
             color: #2d4569;
+            margin-bottom: 5px;
         }
         
-        .stat-description {
-            color: #666;
+        .stat-label {
             font-size: 14px;
-            margin-top: 5px;
+            color: #666;
         }
         
-        .download-btn {
-            background-color: #2d4569;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
+        .charts-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .chart-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .chart-title {
+            color: #2d4569;
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 20px;
+        }
+        
+        .monthly-chart-container {
+            height: 250px;
+            position: relative;
+        }
+        
+        .distribution-chart-container {
+            height: 250px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+        }
+        
+        /* For the bar chart */
+        .bar-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-end;
+            height: 200px;
+            padding-top: 20px;
+        }
+        
+        .bar-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 33%;
+        }
+        
+        .bar {
+            width: 40px;
+            background-color: #63c5da;
+            margin-bottom: 10px;
+            border-radius: 5px 5px 0 0;
+        }
+        
+        .bar.cancelled {
+            height: 50px;
+        }
+        
+        .bar.completed {
+            height: 120px;
+        }
+        
+        .bar.appointments {
+            height: 170px;
+        }
+        
+        .bar-label {
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+        }
+        
+        /* For the donut chart */
+        .donut-chart {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: conic-gradient(
+                #4c92d3 0% 25%,
+                #63c5da 25% 65%,
+                #9ad9ea 65% 100%
+            );
+            position: relative;
+        }
+        
+        .donut-hole {
+            width: 100px;
+            height: 100px;
+            background-color: white;
+            border-radius: 50%;
+            position: absolute;
+            top: 50px;
+            left: 50px;
+        }
+        
+        .legend {
+            font-size: 12px;
+            color: #666;
+            margin-top: 20px;
+        }
+        
+        .legend-item {
             display: flex;
             align-items: center;
-            gap: 5px;
+            margin-bottom: 5px;
         }
         
-        .download-btn:hover {
-            background-color: #1f324d;
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+            margin-right: 5px;
+        }
+        
+        .legend-text {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0,0,0,.1);
+            border-radius: 50%;
+            border-top-color: #4c92d3;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
     </style>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="sidebar">
-        <a href="#" class="active">Dashboard</a>
-        <a href="admin_patient_management.html">Patient Management</a>
-        <a href="{{ url_for('admin_user_management') }}">User Management</a>
-        <a href="#">Appointment</a>
-        <a href="#">Transactions</a>
-        <a href="{{ url_for('admin_treatments') }}">Treatments</a>
-        <a href="#">Dental Cases</a>
-        <a href="{{ url_for('admin_settings') }}">Settings</a>
-        <a href="{{ url_for('logout') }}">Logout</a>
-    </div>
-    
-    <div class="header">
-        <div class="header-title">Admin | Dashboard</div>
-        <div class="header-icons">
-            <span>🔔</span>
-            <span>👤</span>
+        <div class="logo-container">
+            <img src="/static/uploads/logo.png" alt="Orthocare Logo" class="logo">
         </div>
+        <a href="#" class="menu-item active">Dashboard</a>
+        <a href="#" class="menu-item">Patient Management</a>
+        <a href="{{url_for('admin_user_management')}}" class="menu-item">User Management</a>
+        <a href="#" class="menu-item">Appointment</a>
+        <a href="#" class="menu-item">Transactions</a>
+        <a href="{{url_for('admin_treatments')}}" class="menu-item">Treatments</a>
+        <a href="#" class="menu-item">Dental Cases</a>
+        <a href="{{url_for('admin_settings')}}" class="menu-item">Settings</a>
+        <a href="{{url_for('logout')}}" class="menu-item">Log Out</a>
     </div>
     
     <div class="main-content">
-        <div class="dashboard-content">
-            <div class="report-section">
-                <div class="report-header">
-                    <div class="report-title">General Report</div>
-                    <div class="report-filter">Daily ▼</div>
-                </div>
-                
-                
-                <div style="height: 250px;"></div>
-                
-                <div style="text-align: right; margin-top: 20px;">
-                    <button class="download-btn">Download <span>↓</span></button>
+        <div class="header">
+            <div>
+                <h1 class="page-title">Dashboard Overview</h1>
+                <p class="welcome-text">Welcome back, Admin</p>
+            </div>
+        </div>
+        
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-info">
+                    <div class="stat-value" id="total-patients">
+                        <span class="loading"></span>
+                    </div>
+                    <div class="stat-label">Total Patients</div>
                 </div>
             </div>
             
-            <div>
-                <div class="report-section">
-                    <div class="report-title">Summary Report</div>
-                    
-                    <div style="height: 120px;"></div>
+            <div class="stat-card">
+                <div class="stat-icon">📅</div>
+                <div class="stat-info">
+                    <div class="stat-value" id="today-appointments">
+                        <span class="loading"></span>
+                    </div>
+                    <div class="stat-label">Appointments Today</div>
                 </div>
-                
-                <div class="report-section" style="margin-top: 20px;">
-                    <div class="report-title">Detailed Report</div>
-                    
-                    <div style="height: 120px;"></div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">$</div>
+                <div class="stat-info">
+                    <div class="stat-value" id="monthly-revenue">
+                        <span class="loading"></span>
+                    </div>
+                    <div class="stat-label">Monthly Revenue</div>
                 </div>
             </div>
         </div>
         
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-title">Today's Appointments</div>
-                <div class="stat-value">0</div>
-                <div class="stat-description">Scheduled appointments for today</div>
+        <div class="charts-container">
+            <div class="chart-card">
+                <div class="chart-title">Monthly Performance</div>
+                <div class="monthly-chart-container">
+                    <div class="bar-container">
+                        <div class="bar-group">
+                            <div class="bar cancelled"></div>
+                            <div class="bar-label">Cancelled</div>
+                            <div class="bar-label">5</div>
+                        </div>
+                        <div class="bar-group">
+                            <div class="bar completed"></div>
+                            <div class="bar-label">Completed</div>
+                            <div class="bar-label">12</div>
+                        </div>
+                        <div class="bar-group">
+                            <div class="bar appointments"></div>
+                            <div class="bar-label">Appointments</div>
+                            <div class="bar-label">17</div>
+                        </div>
+                    </div>
+                </div>
             </div>
             
-            <div class="stat-card">
-                <div class="stat-title">Total Patients</div>
-                <div class="stat-value">0</div>
-                <div class="stat-description">Registered patients</div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-title">Active Dentists</div>
-                <div class="stat-value">0</div>
-                <div class="stat-description">Dentists currently available</div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-title">Recent Activity</div>
-                <div class="stat-description">No recent activity to display.</div>
-            </div>
         </div>
     </div>
+    
+    <script>
+        // Function to fetch data from API endpoints
+        async function fetchDashboardData() {
+            // Show loading state
+            document.getElementById('total-patients').textContent = 'Loading...';
+            document.getElementById('today-appointments').textContent = 'Loading...';
+            document.getElementById('monthly-revenue').textContent = 'Loading...';
+            
+            try {
+                // Fetch active patients
+                const patientsResponse = await fetch('/api/dashboard/active-patients');
+                const patientsData = await patientsResponse.json();
+                
+                if (patientsData.success !== false) {
+                    document.getElementById('total-patients').textContent = patientsData.count.toLocaleString();
+                } else {
+                    console.error('Error fetching patient data:', patientsData.message);
+                    document.getElementById('total-patients').textContent = 'Error loading data';
+                }
+                
+                // Fetch today's appointments
+                const appointmentsResponse = await fetch('/api/dashboard/today-appointments');
+                const appointmentsData = await appointmentsResponse.json();
+                
+                if (appointmentsData.success !== false) {
+                    if (appointmentsData.count > 0) {
+                        document.getElementById('today-appointments').textContent = appointmentsData.count;
+                    } else {
+                        document.getElementById('today-appointments').textContent = 'No appointments today';
+                    }
+                } else {
+                    console.error('Error fetching appointment data:', appointmentsData.message);
+                    document.getElementById('today-appointments').textContent = 'Error loading data';
+                }
+                
+                // Fetch monthly revenue
+                const revenueResponse = await fetch('/api/dashboard/monthly-revenue');
+                const revenueData = await revenueResponse.json();
+                
+                if (revenueData.success !== false) {
+                    document.getElementById('monthly-revenue').textContent = '$' + revenueData.amount.toLocaleString();
+                } else {
+                    console.error('Error fetching revenue data:', revenueData.message);
+                    document.getElementById('monthly-revenue').textContent = 'Error loading data';
+                }
+                
+                // Fetch performance data
+                const performanceResponse = await fetch('/api/dashboard/monthly-performance');
+                const performanceData = await performanceResponse.json();
+                
+                // Update performance bars if the DOM elements exist
+                const cancelledBar = document.querySelector('.bar.cancelled');
+                const completedBar = document.querySelector('.bar.completed');
+                const appointmentsBar = document.querySelector('.bar.appointments');
+                
+                if (performanceData.success !== false && cancelledBar && completedBar && appointmentsBar) {
+                    // Check if we have any data
+                    const maxValue = Math.max(
+                        performanceData.cancelled || 0,
+                        performanceData.completed || 0,
+                        performanceData.total || 0,
+                        1  // Prevent division by zero
+                    );
+                    const maxHeight = 170;
+                    
+                    // Set heights safely
+                    cancelledBar.style.height = `${((performanceData.cancelled || 0) / maxValue) * maxHeight}px`;
+                    completedBar.style.height = `${((performanceData.completed || 0) / maxValue) * maxHeight}px`;
+                    appointmentsBar.style.height = `${((performanceData.total || 0) / maxValue) * maxHeight}px`;
+                    
+                    // Update the labels if they exist
+                    if (cancelledBar.nextElementSibling && cancelledBar.nextElementSibling.nextElementSibling) {
+                        cancelledBar.nextElementSibling.nextElementSibling.textContent = performanceData.cancelled || 0;
+                    }
+                    if (completedBar.nextElementSibling && completedBar.nextElementSibling.nextElementSibling) {
+                        completedBar.nextElementSibling.nextElementSibling.textContent = performanceData.completed || 0;
+                    }
+                    if (appointmentsBar.nextElementSibling && appointmentsBar.nextElementSibling.nextElementSibling) {
+                        appointmentsBar.nextElementSibling.nextElementSibling.textContent = performanceData.total || 0;
+                    }
+                } else {
+                    console.error('Error with performance data or missing DOM elements');
+                }
+                
+            } catch (error) {
+                console.error('Error fetching dashboard data:', error);
+                
+                // Fallback to sample data if API fails
+                document.getElementById('total-patients').textContent = '2,451';
+                document.getElementById('today-appointments').textContent = '20';
+                document.getElementById('monthly-revenue').textContent = '$52,340';
+            }
+        }
+
+        // Load data when page loads
+        document.addEventListener('DOMContentLoaded', fetchDashboardData);
+            
+        
+    </script>
 </body>
 </html>

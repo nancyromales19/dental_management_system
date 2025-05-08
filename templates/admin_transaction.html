@@ -357,18 +357,20 @@
             margin-top: 10px;
         }
     </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/w3.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="sidebar">
-        <a href="#">Dashboard</a>
+        <a href="{{ url_for('admin_dashboard') }}" style="margin-top:50px;">Dashboard</a>
         <a href="#">Patient Management</a>
-        <a href="#">User Management</a>
+        <a href="{{ url_for('admin_user_management') }}">User Management</a>
         <a href="#">Appointment</a>
         <a href="#" class="active">Transactions</a>
-        <a href="#">Treatments</a>
-        <a href="#">Dental Cases</a>
-        <a href="#">Settings</a>
+        <a href="{{ url_for('admin_treatments') }}">Treatments</a>
+        <a href="">Dental Cases</a>
+        <a href="{{ url_for('admin_settings') }}">Settings</a>
+        <a href="{{ url_for('logout') }}">Logout</a>
     </div>
     
     <div class="header">

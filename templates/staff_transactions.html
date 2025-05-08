@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orthocare - Staff Transactions</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+        }
+        
+        .header {
+            background-color: #2d4569;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: fixed;
+            top: 0;
+            right: 0;
+            left: 250px;
+            z-index: 100;
+            height: 50px;
+        }
+        
+        .header-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .header-icons {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .sidebar {
+            width: 250px;
+            background-color: #2d4569;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            color: white;
+            z-index: 200;
+        }
+        
+        .sidebar a {
+            display: block;
+            padding: 15px 20px;
+            color: white;
+            text-decoration: none;
+            border-left: 4px solid transparent;
+        }
+        
+        .sidebar a:hover,
+        .sidebar a.active {
+            background-color: #1f324d;
+            border-left: 4px solid #92b4d3;
+        }
+        
+        .main-content {
+            margin-left: 250px;
+            padding: 70px 20px 20px 20px;
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        
+        h2 {
+            margin-top: 0;
+            font-size: 24px;
+            font-weight: 600;
+            color: #2d4569;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .tab.active {
+            border-bottom: 3px solid #2d4569;
+            font-weight: 600;
+            color: #2d4569;
+        }
+        
+        .tab:hover:not(.active) {
+            background-color: #f4f6f8;
+        }
+        
+        .search-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 15px;
+        }
+        
+        .search-container input {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 200px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        thead {
+            background-color: #f4f6f8;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        
+        th {
+            font-weight: 600;
+        }
+        
+        .status-pending {
+            color: #e67e22;
+            font-weight: 500;
+        }
+        
+        .status-completed {
+            color: #27ae60;
+            font-weight: 500;
+        }
+        
+        .action-button {
+            background-color: #2d4569;
+            color: white;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .action-button:hover {
+            background-color: #1f324d;
+        }
+        
+        .pagination {
+            text-align: center;
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+        }
+        
+        .pagination a {
+            display: inline-block;
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            color: #333;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        
+        .pagination a.active {
+            background-color: #2d4569;
+            color: white;
+            border-color: #2d4569;
+        }
+        
+        .pagination a:hover:not(.active) {
+            background-color: #f4f6f8;
+        }
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 800px;
+            position: relative;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2d4569;
+        }
+        
+        .close {
+            color: #aaa;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover {
+            color: #555;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .form-row .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .treatment-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .treatment-name {
+            font-weight: 500;
+        }
+        
+        .treatment-price {
+            color: #2d4569;
+            font-weight: 600;
+        }
+        
+        .total-amount {
+            text-align: right;
+            font-size: 18px;
+            font-weight: 600;
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 2px solid #2d4569;
+        }
+        
+        .payment-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        
+        .payment-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #2d4569;
+        }
+        
+        .modal-footer {
+            text-align: right;
+            margin-top: 20px;
+        }
+        
+        button {
+            background-color: #2d4569;
+            color: white;
+            padding: 8px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        button:hover {
+            background-color: #1f324d;
+        }
+        
+        button.secondary {
+            background-color: #95a5a6;
+        }
+        
+        button.secondary:hover {
+            background-color: #7f8c8d;
+        }
+        
+        /* Loading spinner */
+        .spinner {
+            display: none;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #2d4569;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .alert {
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="sidebar">
+        <a href="{{url_for('staff_dashboard')}}" style="margin-top:50px;">Dashboard</a>
+        <a href="{{url_for('staff_patient_management')}}">Patient Management</a>
+        <a href="">User Management</a>
+        <a href="">Appointment</a>
+        <a href="#" class="active">Transactions</a>
+        <a href="{{url_for('staff_treatments')}}">Treatments</a>
+        <a href="{{url_for('staff_settings')}}">Settings</a>
+        <a href="{{ url_for('logout') }}">Logout</a>
+    </div>
+    
+    <div class="header">
+        <div class="header-title">Staff | Transactions</div>
+        <div class="header-icons">
+            <span>🔔</span>
+            <span>👤</span>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="container">
+            <h2>Transactions</h2>
+            
+            <div class="tabs">
+                <div class="tab active" id="pendingTab">Pending</div>
+                <div class="tab" id="completedTab">Completed</div>
+            </div>
+            
+            <div id="alert" class="alert"></div>
+            
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Search transactions...">
+            </div>
+            
+            <div id="spinner" class="spinner"></div>
+            
+            <table id="transactionsTable">
+                <thead>
+                    <tr>
+                        <th>Transaction ID</th>
+                        <th>Patient Name</th>
+                        <th>Dentist</th>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transaction in transactions %}
+                    <tr>
+                        <td>{{ transaction.TRANSACTION_HEADER_ID }}</td>
+                        <td>{{ transaction.PatientName }}</td>
+                        <td>{{ transaction.DentistName }}</td>
+                        <td>{{ transaction.TRANSC_DATE.strftime('%Y-%m-%d %H:%M') if transaction.TRANSC_DATE else '' }}</td>
+                        <td>₱{{ "%.2f"|format(transaction.TOTAL_AMOUNT) }}</td>
+                        <td class="status-pending">{{ transaction.Status }}</td>
+                        <td>
+                            <button class="action-button view-details" data-id="{{ transaction.TRANSACTION_HEADER_ID }}">Continue</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+            <div class="pagination" id="pagination">
+                <!-- Pagination will be added dynamically -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Transaction Details Modal -->
+    <div id="transactionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Transaction Details</div>
+                <span class="close">&times;</span>
+            </div>
+            
+            <div id="transactionDetails">
+                <!-- Details will be loaded here -->
+            </div>
+            
+            <div class="payment-section">
+                <div class="payment-title">Payment Information</div>
+                <form id="paymentForm">
+                    <input type="hidden" id="transactionId">
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="paymentMode">Payment Mode</label>
+                            <select id="paymentMode" required>
+                                <option value="">Select payment mode</option>
+                                <option value="CASH">Cash</option>
+                                <option value="DEBIT">Debit Card</option>
+                                <option value="CREDIT">Credit Card</option>
+                                <option value="INSURANCE">Insurance</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="insuranceGroup" style="display: none;">
+                            <label for="insuranceId">Insurance Provider</label>
+                            <select id="insuranceId">
+                                <!-- Will be populated dynamically -->
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="amountPaid">Amount Paid</label>
+                            <input type="number" id="amountPaid" step="0.01" min="0" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="notes">Notes</label>
+                        <textarea id="notes" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button type="button" class="secondary" id="cancelPayment">Cancel</button>
+                        <button type="submit" id="submitPayment">Complete Transaction</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const pendingTab = document.getElementById('pendingTab');
+        const completedTab = document.getElementById('completedTab');
+        const searchInput = document.getElementById('searchInput');
+        const transactionsTable = document.getElementById('transactionsTable').querySelector('tbody');
+        const pagination = document.getElementById('pagination');
+        const spinner = document.getElementById('spinner');
+        const alertBox = document.getElementById('alert');
+        const transactionModal = document.getElementById('transactionModal');
+        const closeModal = document.querySelector('.close');
+        const cancelPayment = document.getElementById('cancelPayment');
+        const transactionDetails = document.getElementById('transactionDetails');
+        const paymentForm = document.getElementById('paymentForm');
+        const paymentMode = document.getElementById('paymentMode');
+        const insuranceGroup = document.getElementById('insuranceGroup');
+        const insuranceId = document.getElementById('insuranceId');
+        const amountPaid = document.getElementById('amountPaid');
+        const transactionId = document.getElementById('transactionId');
+        
+        // Variables
+        let currentTab = 'pending';
+        let allTransactions = [];
+        let filteredTransactions = [];
+        let currentPage = 1;
+        const itemsPerPage = 10;
+        
+        // Format currency
+        function formatCurrency(amount) {
+            return '₱' + parseFloat(amount).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+        }
+        
+        // Show loading spinner
+        function showSpinner() {
+            spinner.style.display = 'block';
+        }
+        
+        // Hide loading spinner
+        function hideSpinner() {
+            spinner.style.display = 'none';
+        }
+        
+        // Show alert message
+        function showAlert(message, type) {
+            alertBox.textContent = message;
+            alertBox.className = `alert alert-${type}`;
+            alertBox.style.display = 'block';
+            
+            setTimeout(() => {
+                alertBox.style.display = 'none';
+            }, 5000);
+        }
+
+    async function loadTransactions() {
+    showSpinner();
+    try {
+        const endpoint = session.get('role') === 'staff' 
+            ? '/api/staff/transactions' 
+            : '/api/dentist/transactions';
+            
+        const response = await fetch(endpoint);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Normalize status values
+        allTransactions = data.map(tx => ({
+            ...tx,
+            Status: tx.Status === 'COMPLETED' || tx.PaymentStatus === 'COMPLETED' 
+                  ? 'COMPLETED' 
+                  : 'PENDING'
+        }));
+        
+        filteredTransactions = [...allTransactions];
+        renderTransactions();
+    } catch (error) {
+        console.error('Error loading transactions:', error);
+        showAlert('Failed to load transactions. Please try again.', 'danger');
+    } finally {
+        hideSpinner();
+    }
+}
+
+// In staff_transactions template, update the renderTransactions function:
+function renderTransactions() {
+    const tbody = document.querySelector('#transactionsTable tbody');
+    tbody.innerHTML = '';
+    
+    // Filter based on current tab - use consistent status values
+    const filtered = currentTab === 'pending' 
+        ? filteredTransactions.filter(t => t.Status === 'PENDING')
+        : filteredTransactions.filter(t => t.Status === 'COMPLETED');
+        
+    if (filtered.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" style="text-align: center;">No ${currentTab} transactions found</td>
+            </tr>
+        `;
+        return;
+    }
+    
+    filtered.forEach(transaction => {
+        const row = document.createElement('tr');
+        
+        row.innerHTML = `
+            <td>${transaction.TRANSACTION_HEADER_ID}</td>
+            <td>${transaction.PatientName}</td>
+            <td>${transaction.DentistName}</td>
+            <td>${transaction.TRANSC_DATE ? new Date(transaction.TRANSC_DATE).toLocaleDateString() : ''}</td>
+            <td>${formatCurrency(transaction.TOTAL_AMOUNT)}</td>
+            <td class="${transaction.Status === 'PENDING' ? 'status-pending' : 'status-completed'}">
+                ${transaction.Status === 'PENDING' ? 'Pending' : 'Completed'}
+            </td>
+            <td>
+                <button class="action-button view-details" 
+                        data-id="${transaction.TRANSACTION_HEADER_ID}"
+                        ${transaction.Status === 'COMPLETED' ? 'disabled' : ''}>
+                    ${transaction.Status === 'PENDING' ? 'Continue' : 'View'}
+                </button>
+            </td>
+        `;
+        
+        tbody.appendChild(row);
+    });
+}
+
+// Tab switching
+document.getElementById('pendingTab').addEventListener('click', () => {
+    currentTab = 'pending';
+    document.getElementById('pendingTab').classList.add('active');
+    document.getElementById('completedTab').classList.remove('active');
+    renderTransactions();
+});
+
+document.getElementById('completedTab').addEventListener('click', () => {
+    currentTab = 'completed';
+    document.getElementById('pendingTab').classList.remove('active');
+    document.getElementById('completedTab').classList.add('active');
+    renderTransactions();
+});
+
+// Initial load
+loadTransactions();
+        
+        // Load transaction details
+        async function loadTransactionDetails(transactionId) {
+            showSpinner();
+            try {
+                const response = await fetch(`/api/transactions/${transactionId}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch transaction details');
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Populate transaction details
+                    let html = `
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Patient Name</label>
+                                <p>${data.basic_info.PatientName || 'N/A'}</p>
+                            </div>
+                            <div class="form-group">
+                                <label>Dentist</label>
+                                <p>${data.basic_info.DentistName || 'N/A'}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Date</label>
+                                <p>${data.basic_info.TRANSC_DATE || 'N/A'}</p>
+                            </div>
+                            <div class="form-group">
+                                <label>Total Amount</label>
+                                <p>${formatCurrency(data.basic_info.TOTAL_AMOUNT || 0)}</p>
+                            </div>
+                        </div>
+                        
+                        <h3>Treatments</h3>
+                    `;
+                    
+                    // Add treatments
+                    data.treatments.forEach(treatment => {
+                        html += `
+                            <div class="treatment-item">
+                                <div class="treatment-name">${treatment.TREATMENT_TYPE}</div>
+                                <div class="treatment-price">${formatCurrency(treatment.TREATMENT_PRICE)}</div>
+                            </div>
+                        `;
+                    });
+                    
+                    // Add total
+                    html += `
+                        <div class="total-amount">
+                            Total: ${formatCurrency(data.basic_info.TOTAL_AMOUNT || 0)}
+                        </div>
+                    `;
+                    
+                    // Add insurance info if available
+                    if (data.insurance) {
+                        html += `
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Insurance Provider</label>
+                                    <p>${data.insurance.INSURANCE_COMPANY}</p>
+                                </div>
+                                <div class="form-group">
+                                    <label>Policy Number</label>
+                                    <p>${data.insurance.POLICY_NUM}</p>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    transactionDetails.innerHTML = html;
+                    document.getElementById('transactionId').value = transactionId;
+                    
+                    // Show modal
+                    transactionModal.style.display = 'block';
+                } else {
+                    showAlert(data.message || 'Failed to load transaction details', 'danger');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Failed to load transaction details', 'danger');
+            } finally {
+                hideSpinner();
+            }
+        }
+        
+        // Handle payment mode change
+        paymentMode.addEventListener('change', function() {
+            if (this.value === 'INSURANCE') {
+                insuranceGroup.style.display = 'block';
+                // Here you would load insurance providers if needed
+            } else {
+                insuranceGroup.style.display = 'none';
+            }
+        });
+        
+        // Handle form submission
+        paymentForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                transaction_id: transactionId.value,
+                payment_mode: paymentMode.value,
+                insurance_id: paymentMode.value === 'INSURANCE' ? insuranceId.value : null,
+                amount_paid: amountPaid.value
+            };
+            
+            showSpinner();
+            try {
+                const response = await fetch('/api/transactions/complete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('Transaction completed successfully', 'success');
+                    transactionModal.style.display = 'none';
+                    // Refresh transactions list
+                    window.location.reload();
+                } else {
+                    showAlert(data.message || 'Failed to complete transaction', 'danger');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Failed to complete transaction', 'danger');
+            } finally {
+                hideSpinner();
+            }
+        });
+        
+        // Event listeners
+        pendingTab.addEventListener('click', function() {
+            currentTab = 'pending';
+            pendingTab.classList.add('active');
+            completedTab.classList.remove('active');
+            // Here you would filter transactions by status
+        });
+        
+        completedTab.addEventListener('click', function() {
+            currentTab = 'completed';
+            pendingTab.classList.remove('active');
+            completedTab.classList.add('active');
+            // Here you would filter transactions by status
+        });
+        
+        searchInput.addEventListener('input', function() {
+            // Here you would implement search functionality
+        });
+        
+        // View details button click
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('view-details')) {
+                const transactionId = e.target.getAttribute('data-id');
+                loadTransactionDetails(transactionId);
+            }
+        });
+        
+        // Close modal
+        closeModal.addEventListener('click', function() {
+            transactionModal.style.display = 'none';
+        });
+        
+        cancelPayment.addEventListener('click', function() {
+            transactionModal.style.display = 'none';
+        });
+        
+        // Close modal when clicking outside
+        window.addEventListener('click', function(e) {
+            if (e.target === transactionModal) {
+                transactionModal.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

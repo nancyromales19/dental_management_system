@@ -160,11 +160,12 @@
             background-color: #1f324d;
         }
     </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/w3.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="sidebar">
-        <a href="#">Dashboard</a>
+        <a href="#" style="margin-top:50px;">Dashboard</a>
         <a href="#" class="active">Patient Management</a>
         <a href="{{ url_for('user_management') }}">User Management</a>
         <a href="{{ url_for('appointment') }}">Appointment</a>

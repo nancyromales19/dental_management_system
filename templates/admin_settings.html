@@ -241,11 +241,12 @@
             border: 1px solid #ffeeba;
         }
     </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/w3.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="sidebar">
-        <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('admin_dashboard') }}" style="margin-top:50px;">Dashboard</a>
         <a href="admin_patient_management.html">Patient Management</a>
         <a href="{{ url_for('admin_user_management') }}">User Management</a>
         <a href="#">Appointment</a>
@@ -344,6 +345,10 @@
             const formInputs = document.querySelectorAll('.field-input');
             const saveBtnContainer = document.getElementById('saveBtnContainer');
             const profileForm = document.getElementById('profileForm');
+            const profileImage = document.getElementById('profileImage');
+            
+            // Add pointer cursor to profile image
+            profileImage.style.cursor = 'default';
             
             // Enable editing of profile fields
             editBtn.addEventListener('click', function() {
@@ -361,6 +366,10 @@
                 
                 // Show the save button
                 saveBtnContainer.style.display = 'block';
+                
+                // Make profile image clickable with visual indicator
+                profileImage.style.cursor = 'pointer';
+                profileImage.title = 'Click to upload new profile picture';
             });
             
             // Form validation before submit
@@ -444,37 +453,46 @@
                 }
             });
             
-            // Optional: Add profile image upload functionality
-            const profileImage = document.getElementById('profileImage');
-            if (profileImage) {
-                profileImage.addEventListener('click', function() {
-                    // Only allow clicking the image when in edit mode
-                    if (!formInputs[0].disabled) {
-                        const fileInput = document.createElement('input');
-                        fileInput.type = 'file';
-                        fileInput.accept = 'image/*';
-                        fileInput.name = 'profile_image';
-                        fileInput.style.display = 'none';
-                        
-                        // Add the file input to the form
-                        profileForm.appendChild(fileInput);
-                        
-                        fileInput.addEventListener('change', function(e) {
-                            if (this.files && this.files[0]) {
-                                const reader = new FileReader();
-                                
-                                reader.onload = function(e) {
-                                    profileImage.src = e.target.result;
-                                }
-                                
-                                reader.readAsDataURL(this.files[0]);
+            // Profile image upload functionality
+            profileImage.addEventListener('click', function() {
+                // Only allow clicking the image when in edit mode
+                if (!formInputs[0].disabled) {
+                    const fileInput = document.createElement('input');
+                    fileInput.type = 'file';
+                    fileInput.accept = 'image/*';
+                    fileInput.name = 'profile_image';
+                    fileInput.style.display = 'none';
+                    
+                    // Add the file input to the form
+                    profileForm.appendChild(fileInput);
+                    
+                    fileInput.addEventListener('change', function(e) {
+                        if (this.files && this.files[0]) {
+                            const reader = new FileReader();
+                            
+                            reader.onload = function(e) {
+                                profileImage.src = e.target.result;
                             }
-                        });
-                        
-                        fileInput.click();
-                    }
+                            
+                            reader.readAsDataURL(this.files[0]);
+                        }
+                    });
+                    
+                    fileInput.click();
+                }
+            });
+            
+            // Auto-hide flash messages after 5 seconds
+            setTimeout(function() {
+                const flashMessages = document.querySelectorAll('.flash-message');
+                flashMessages.forEach(function(message) {
+                    message.style.transition = 'opacity 1s';
+                    message.style.opacity = '0';
+                    setTimeout(function() {
+                        message.style.display = 'none';
+                    }, 1000);
                 });
-            }
+            }, 5000);
         });
     </script>
 </body>

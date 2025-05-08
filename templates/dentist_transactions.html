@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orthocare - Dentist Transactions</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/w3.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet"> 
+    <style>
+         * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+        }
+        
+        .header {
+            background-color: #2d4569;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: fixed;
+            top: 0;
+            right: 0;
+            left: 250px;
+            z-index: 100;
+            height: 50px;
+        }
+        
+        .header-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .header-icons {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .sidebar {
+            width: 250px;
+            background-color: #2d4569;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            color: white;
+            z-index: 200;
+        }
+        
+        .sidebar a {
+            display: block;
+            padding: 15px 20px;
+            color: white;
+            text-decoration: none;
+            border-left: 4px solid transparent;
+        }
+        
+        .sidebar a:hover,
+        .sidebar a.active {
+            background-color: #1f324d;
+            border-left: 4px solid #92b4d3;
+        }
+        
+        .main-content {
+            margin-left: 250px;
+            padding: 70px 20px 20px 20px;
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        
+        h2 {
+            margin-top: 0;
+            font-size: 24px;
+            font-weight: 600;
+            color: #2d4569;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .tab.active {
+            border-bottom: 3px solid #2d4569;
+            font-weight: 600;
+            color: #2d4569;
+        }
+        
+        .tab:hover:not(.active) {
+            background-color: #f4f6f8;
+        }
+        
+        .search-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 15px;
+        }
+        
+        .search-container input {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 200px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        thead {
+            background-color: #f4f6f8;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        
+        th {
+            font-weight: 600;
+        }
+        
+        .status-pending {
+            color: #e67e22;
+            font-weight: 500;
+        }
+        
+        .status-completed {
+            color: #27ae60;
+            font-weight: 500;
+        }
+        
+        .view-button {
+            background-color: #2d4569;
+            color: white;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .view-button:hover {
+            background-color: #1f324d;
+        }
+        
+        .pagination {
+            text-align: center;
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+        }
+        
+        .pagination a {
+            display: inline-block;
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            color: #333;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        
+        .pagination a.active {
+            background-color: #2d4569;
+            color: white;
+            border-color: #2d4569;
+        }
+        
+        .pagination a:hover:not(.active) {
+            background-color: #f4f6f8;
+        }
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 800px;
+            position: relative;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2d4569;
+        }
+        
+        .close {
+            color: #aaa;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover {
+            color: #555;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .form-group {
+            flex: 1;
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .form-group p {
+            padding: 8px 0;
+        }
+        
+        .treatment-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .treatment-name {
+            font-weight: 500;
+        }
+        
+        .treatment-price {
+            color: #2d4569;
+            font-weight: 600;
+        }
+        .action-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .new-transaction-btn {
+            background-color: #2d4569;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .new-transaction-btn:hover {
+            background-color: #1f324d;
+        }
+        
+        .patient-search-container {
+            margin-bottom: 15px;
+        }
+        
+        .patient-search-results {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .patient-result {
+            padding: 8px 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .patient-result:hover {
+            background-color: #f4f6f8;
+        }
+        
+        .treatments-list {
+            margin-top: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .treatment-checkbox {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .treatment-info {
+            flex-grow: 1;
+            margin-left: 10px;
+        }
+        
+        .treatment-price {
+            font-weight: 600;
+            color: #2d4569;
+        }
+        
+        .total-amount {
+            font-weight: 600;
+            font-size: 18px;
+            text-align: right;
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 2px solid #2d4569;
+        }
+        
+        .submit-btn {
+            background-color: #27ae60;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+            margin-right: 20px;
+            margin-bottom: 20px;
+            float: right;
+        }
+        
+        .submit-btn:hover {
+            background-color: #219653;
+        }
+        
+        .clear-btn {
+            background-color: #e74c3c;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            float: right;
+        }
+        
+        .clear-btn:hover {
+            background-color: #c0392b;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <a href="{{url_for('dentist_dashboard')}}" style="margin-top:50px;">Dashboard</a>
+        <a href="{{url_for('dentist_patient')}}">My Patients</a>
+        <a href="{{url_for('dentist_appointment')}}">My Appointments</a>
+        <a href="" class="active">Transactions</a>
+        <a href="{{url_for('dentist_treatments')}}">Treatments</a>
+        <a href="#">Dental Cases</a>
+        <a href="{{ url_for('dentist_settings') }}">Settings</a>
+        <a href="{{ url_for('logout') }}">Logout</a>
+    </div>
+    
+    <div class="header">
+        <div class="header-title">Dentist | Transactions</div>
+        <div class="header-icons">
+            <span>🔔</span>
+            <span>👤</span>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="container">
+            <div class="action-buttons">
+                <h2>My Transactions</h2>
+                <button class="new-transaction-btn" id="newTransactionBtn">
+                    <span>+</span> New Transaction
+                </button>
+            </div>
+            
+            <div class="tabs">
+                <div class="tab active" id="pendingTab">Pending</div>
+                <div class="tab" id="completedTab">Completed</div>
+            </div>
+            
+            <div id="alert" class="alert"></div>
+            
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Search transactions...">
+            </div>
+            
+            <div id="spinner" class="spinner"></div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Transaction ID</th>
+                        <th>Patient Name</th>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="transactionsTable">
+                    {% for transaction in transactions %}
+                    <tr>
+                        <td>{{ transaction.TRANSACTION_HEADER_ID }}</td>
+                        <td>{{ transaction.PatientName }}</td>
+                        <td>{{ transaction.TRANSC_DATE.strftime('%Y-%m-%d') if transaction.TRANSC_DATE else '' }}</td>
+                        <td>₱{{ "%.2f"|format(transaction.TOTAL_AMOUNT) }}</td>
+                        <td class="{% if transaction.PaymentStatus == 'PENDING' %}status-pending{% else %}status-completed{% endif %}">
+                            {{ 'Ongoing' if transaction.PaymentStatus == 'PENDING' else 'Completed' }}
+                        </td>
+                        <td>
+                            <button class="view-button view-details" data-id="{{ transaction.TRANSACTION_HEADER_ID }}">View</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+            <div class="pagination" id="pagination">
+                <!-- Pagination will be added dynamically -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Transaction Details Modal -->
+    <div id="transactionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Transaction Details</div>
+                <span class="close">&times;</span>
+            </div>
+            
+            <div id="transactionDetails">
+                <!-- Details will be loaded here -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- New Transaction Modal -->
+    <div id="newTransactionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Create New Transaction</div>
+                <span class="close">&times;</span>
+            </div>
+            
+            <div id="newTransactionForm">
+                <div class="form-group">
+                    <label>Patient</label>
+                    <div class="patient-search-container">
+                        <input type="text" id="patientSearch" placeholder="Search patient by name..." class="form-control">
+                        <div class="patient-search-results" id="patientSearchResults"></div>
+                    </div>
+                    <div id="selectedPatientInfo" style="display: none; margin-top: 10px; padding: 10px; background-color: #f8f9fa; border-radius: 4px;">
+                        <h4 id="patientName"></h4>
+                        <p id="patientPhone"></p>
+                        <p id="patientEmail"></p>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Select Treatments</label>
+                    <div class="treatments-list" id="treatmentsList">
+                        <!-- Treatments will be loaded here -->
+                    </div>
+                    <div class="total-amount" id="transactionTotal">
+                        Total: ₱0.00
+                    </div>
+                </div>
+                
+                <button class="clear-btn" id="clearTransactionBtn">Clear</button><br>
+                <button class="submit-btn" id="submitTransactionBtn">Proceed Transaction</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const pendingTab = document.getElementById('pendingTab');
+        const completedTab = document.getElementById('completedTab');
+        const searchInput = document.getElementById('searchInput');
+        const transactionsTable = document.getElementById('transactionsTable');
+        const pagination = document.getElementById('pagination');
+        const spinner = document.getElementById('spinner');
+        const alertBox = document.getElementById('alert');
+        const transactionModal = document.getElementById('transactionModal');
+        const closeModal = document.querySelectorAll('.close');
+        const transactionDetails = document.getElementById('transactionDetails');
+        
+        // New Transaction Elements
+        const newTransactionBtn = document.getElementById('newTransactionBtn');
+        const newTransactionModal = document.getElementById('newTransactionModal');
+        const patientSearch = document.getElementById('patientSearch');
+        const patientSearchResults = document.getElementById('patientSearchResults');
+        const selectedPatientInfo = document.getElementById('selectedPatientInfo');
+        const patientName = document.getElementById('patientName');
+        const patientPhone = document.getElementById('patientPhone');
+        const patientEmail = document.getElementById('patientEmail');
+        const treatmentsList = document.getElementById('treatmentsList');
+        const transactionTotal = document.getElementById('transactionTotal');
+        const submitTransactionBtn = document.getElementById('submitTransactionBtn');
+        const clearTransactionBtn = document.getElementById('clearTransactionBtn');
+        
+        // Variables
+        let currentTab = 'pending';
+        let currentPage = 1;
+        const itemsPerPage = 10;
+        let allTransactions = [];
+        let filteredTransactions = [];
+        
+        let selectedPatient = null;
+        let selectedTreatments = [];
+        let allTreatments = [];
+        
+        // Format currency
+        function formatCurrency(amount) {
+            return '₱' + parseFloat(amount).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+        }
+        
+        // Show loading spinner
+        function showSpinner() {
+            spinner.style.display = 'block';
+        }
+        
+        // Hide loading spinner
+        function hideSpinner() {
+            spinner.style.display = 'none';
+        }
+        
+        // Show alert message
+        function showAlert(message, type) {
+            alertBox.textContent = message;
+            alertBox.className = `alert alert-${type}`;
+            alertBox.style.display = 'block';
+            
+            setTimeout(() => {
+                alertBox.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Load transaction details
+        async function loadTransactionDetails(transactionId) {
+            showSpinner();
+            try {
+                const response = await fetch(`/api/transactions/${transactionId}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch transaction details');
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Populate transaction details
+                    let html = `
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Patient Name</label>
+                                <p>${data.basic_info.PatientName || 'N/A'}</p>
+                            </div>
+                            <div class="form-group">
+                                <label>Date</label>
+                                <p>${data.basic_info.TRANSC_DATE || 'N/A'}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Total Amount</label>
+                            <p>${formatCurrency(data.basic_info.TOTAL_AMOUNT || 0)}</p>
+                        </div>
+                        
+                        <h3>Treatments</h3>
+                    `;
+                    
+                    // Add treatments
+                    data.treatments.forEach(treatment => {
+                        html += `
+                            <div class="treatment-item">
+                                <div class="treatment-name">${treatment.TREATMENT_TYPE}</div>
+                                <div class="treatment-price">${formatCurrency(treatment.TREATMENT_PRICE)}</div>
+                            </div>
+                        `;
+                    });
+                    
+                    // Add total
+                    html += `
+                        <div class="total-amount">
+                            Total: ${formatCurrency(data.basic_info.TOTAL_AMOUNT || 0)}
+                        </div>
+                    `;
+                    
+                    // Add payment status
+                    const paymentStatus = data.treatments[0]?.BALANCE > 0 ? 'Pending' : 'Completed';
+                    html += `
+                        <div class="form-group">
+                            <label>Status</label>
+                            <p class="${paymentStatus === 'Pending' ? 'status-pending' : 'status-completed'}">${paymentStatus}</p>
+                        </div>
+                    `;
+                    
+                    transactionDetails.innerHTML = html;
+                    
+                    // Show modal
+                    transactionModal.style.display = 'block';
+                } else {
+                    showAlert(data.message || 'Failed to load transaction details', 'danger');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Failed to load transaction details', 'danger');
+            } finally {
+                hideSpinner();
+            }
+        }
+        
+        // Search patients
+        async function searchPatients(query) {
+            if (query.length < 2) {
+                patientSearchResults.style.display = 'none';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/search_patients?term=${encodeURIComponent(query)}`);
+                if (!response.ok) {
+                    throw new Error('Failed to search patients');
+                }
+                
+                const patients = await response.json();
+                
+                if (patients.length > 0) {
+                    patientSearchResults.innerHTML = '';
+                    patients.forEach(patient => {
+                        const div = document.createElement('div');
+                        div.className = 'patient-result';
+                        div.textContent = `${patient.PATIENT_NAME} (${patient.PATIENT_PHO_NUM})`;
+                        div.dataset.id = patient.PATIENT_ID;
+                        div.dataset.name = patient.PATIENT_NAME;
+                        div.dataset.phone = patient.PATIENT_PHO_NUM;
+                        div.dataset.email = patient.PATIENT_EMAIL_ADD || 'N/A';
+                        
+                        div.addEventListener('click', () => {
+                            selectedPatient = {
+                                id: patient.PATIENT_ID,
+                                name: patient.PATIENT_NAME,
+                                phone: patient.PATIENT_PHO_NUM,
+                                email: patient.PATIENT_EMAIL_ADD || 'N/A'
+                            };
+                            
+                            patientName.textContent = patient.PATIENT_NAME;
+                            patientPhone.textContent = `Phone: ${patient.PATIENT_PHO_NUM}`;
+                            patientEmail.textContent = `Email: ${patient.PATIENT_EMAIL_ADD || 'N/A'}`;
+                            
+                            selectedPatientInfo.style.display = 'block';
+                            patientSearchResults.style.display = 'none';
+                            patientSearch.value = '';
+                        });
+                        
+                        patientSearchResults.appendChild(div);
+                    });
+                    
+                    patientSearchResults.style.display = 'block';
+                } else {
+                    patientSearchResults.innerHTML = '<div class="patient-result">No patients found</div>';
+                    patientSearchResults.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error searching patients:', error);
+                patientSearchResults.innerHTML = '<div class="patient-result">Error searching patients</div>';
+                patientSearchResults.style.display = 'block';
+            }
+        }
+        
+        // Load all treatments
+        async function loadTreatments() {
+            showSpinner();
+            try {
+                const response = await fetch('/api/treatments');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch treatments');
+                }
+                
+                const data = await response.json();
+                
+                if (data.treatments && data.treatments.length > 0) {
+                    allTreatments = data.treatments;
+                    
+                    treatmentsList.innerHTML = '';
+                    data.treatments.forEach(treatment => {
+                        const div = document.createElement('div');
+                        div.className = 'treatment-checkbox';
+                        
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.id = `treatment-${treatment.TREATMENT_ID}`;
+                        checkbox.value = treatment.TREATMENT_ID;
+                        
+                        checkbox.addEventListener('change', (e) => {
+                            if (e.target.checked) {
+                                selectedTreatments.push({
+                                    id: treatment.TREATMENT_ID,
+                                    name: treatment.TREATMENT_TYPE,
+                                    price: treatment.TREATMENT_PRICE
+                                });
+                            } else {
+                                selectedTreatments = selectedTreatments.filter(t => t.id !== treatment.TREATMENT_ID);
+                            }
+                            
+                            updateTransactionTotal();
+                        });
+                        
+                        const label = document.createElement('label');
+                        label.htmlFor = `treatment-${treatment.TREATMENT_ID}`;
+                        
+                        const treatmentInfo = document.createElement('div');
+                        treatmentInfo.className = 'treatment-info';
+                        treatmentInfo.innerHTML = `
+                            <div><strong>${treatment.TREATMENT_TYPE}</strong></div>
+                            <div>${treatment.TREATMENT_DESC || 'No description available'}</div>
+                            <div class="treatment-price">${formatCurrency(treatment.TREATMENT_PRICE)}</div>
+                        `;
+                        
+                        div.appendChild(checkbox);
+                        div.appendChild(label);
+                        div.appendChild(treatmentInfo);
+                        
+                        treatmentsList.appendChild(div);
+                    });
+                } else {
+                    treatmentsList.innerHTML = '<div>No treatments available</div>';
+                }
+            } catch (error) {
+                console.error('Error loading treatments:', error);
+                treatmentsList.innerHTML = '<div>Error loading treatments</div>';
+            } finally {
+                hideSpinner();
+            }
+        }
+        
+        // Update transaction total
+        function updateTransactionTotal() {
+            const total = selectedTreatments.reduce((sum, treatment) => sum + parseFloat(treatment.price), 0);
+            transactionTotal.textContent = `Total: ${formatCurrency(total)}`;
+        }
+        
+        // Submit new transaction
+        async function submitTransaction() {
+            if (!selectedPatient) {
+                showAlert('Please select a patient', 'danger');
+                return;
+            }
+            
+            if (selectedTreatments.length === 0) {
+                showAlert('Please select at least one treatment', 'danger');
+                return;
+            }
+            
+            showSpinner();
+            try {
+                const treatmentIds = selectedTreatments.map(t => t.id).join(',');
+                
+                const response = await fetch('/api/transactions/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        patient_id: selectedPatient.id,
+                        treatment_ids: treatmentIds
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('Transaction created successfully', 'success');
+                    newTransactionModal.style.display = 'none';
+                    resetTransactionForm();
+                    
+                    // Refresh transactions table
+                    loadTransactions();
+                } else {
+                    showAlert(data.message || 'Failed to create transaction', 'danger');
+                }
+            } catch (error) {
+                console.error('Error creating transaction:', error);
+                showAlert('Failed to create transaction', 'danger');
+            } finally {
+                hideSpinner();
+            }
+        }
+        
+        // Reset transaction form
+        function resetTransactionForm() {
+            selectedPatient = null;
+            selectedTreatments = [];
+            
+            patientSearch.value = '';
+            selectedPatientInfo.style.display = 'none';
+            
+            // Uncheck all checkboxes
+            const checkboxes = treatmentsList.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            
+            updateTransactionTotal();
+        }
+        
+        // Load transactions
+        async function loadTransactions() {
+    showSpinner();
+    try {
+        const response = await fetch('/api/dentist/transactions');
+        if (!response.ok) {
+            throw new Error('Failed to fetch transactions');
+        }
+        
+        const data = await response.json();
+        
+        // Process the data to ensure consistent status values
+        allTransactions = data.map(tx => {
+            return {
+                ...tx,
+                // Ensure status is either 'PENDING' or 'COMPLETED'
+                PaymentStatus: tx.PaymentStatus === 'COMPLETED' ? 'COMPLETED' : 'PENDING'
+            };
+        });
+        
+        filteredTransactions = [...allTransactions];
+        renderTransactions();
+    } catch (error) {
+        console.error('Error loading transactions:', error);
+        showAlert('Failed to load transactions', 'danger');
+    } finally {
+        hideSpinner();
+    }
+}
+        
+function renderTransactions() {
+    transactionsTable.innerHTML = '';
+    
+    // Filter based on current tab
+    const filtered = currentTab === 'pending' 
+        ? filteredTransactions.filter(t => t.PaymentStatus === 'PENDING')
+        : filteredTransactions.filter(t => t.PaymentStatus === 'COMPLETED');
+        
+    if (filtered.length === 0) {
+        transactionsTable.innerHTML = `
+            <tr>
+                <td colspan="6" style="text-align: center;">No ${currentTab} transactions found</td>
+            </tr>
+        `;
+        return;
+    }
+    
+    filtered.forEach(transaction => {
+        const row = document.createElement('tr');
+        
+        row.innerHTML = `
+            <td>${transaction.TRANSACTION_HEADER_ID}</td>
+            <td>${transaction.PatientName}</td>
+            <td>${transaction.TRANSC_DATE ? new Date(transaction.TRANSC_DATE).toLocaleDateString() : ''}</td>
+            <td>${formatCurrency(transaction.TOTAL_AMOUNT)}</td>
+            <td class="${transaction.PaymentStatus === 'PENDING' ? 'status-pending' : 'status-completed'}">
+                ${transaction.PaymentStatus === 'PENDING' ? 'Pending' : 'Completed'}
+            </td>
+            <td>
+                <button class="view-button view-details" data-id="${transaction.TRANSACTION_HEADER_ID}">View</button>
+            </td>
+        `;
+        
+        transactionsTable.appendChild(row);
+    });
+    
+    document.querySelectorAll('.view-details').forEach(button => {
+        button.addEventListener('click', () => {
+            const transactionId = button.getAttribute('data-id');
+            loadTransactionDetails(transactionId);
+        });
+    });
+}
+
+        
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            loadTransactions();
+            loadTreatments();
+            
+            // Tab switching
+            pendingTab.addEventListener('click', () => {
+                currentTab = 'pending';
+                pendingTab.classList.add('active');
+                completedTab.classList.remove('active');
+                renderTransactions();
+            });
+            
+            completedTab.addEventListener('click', () => {
+                currentTab = 'completed';
+                pendingTab.classList.remove('active');
+                completedTab.classList.add('active');
+                renderTransactions();
+            });
+            
+            // Search functionality
+            searchInput.addEventListener('input', (e) => {
+                const term = e.target.value.toLowerCase();
+                
+                if (term === '') {
+                    filteredTransactions = [...allTransactions];
+                } else {
+                    filteredTransactions = allTransactions.filter(t => 
+                        t.PatientName.toLowerCase().includes(term) ||
+                        t.TRANSACTION_HEADER_ID.toString().includes(term)
+                    );
+                }
+                
+                renderTransactions();
+            });
+            
+            // Patient search
+            patientSearch.addEventListener('input', (e) => {
+                searchPatients(e.target.value);
+            });
+            
+            // Close modals when clicking outside
+            window.addEventListener('click', (e) => {
+                if (e.target === transactionModal) {
+                    transactionModal.style.display = 'none';
+                }
+                
+                if (e.target === newTransactionModal) {
+                    newTransactionModal.style.display = 'none';
+                }
+                
+                if (e.target !== patientSearch && e.target !== patientSearchResults) {
+                    patientSearchResults.style.display = 'none';
+                }
+            });
+            
+            // Close buttons
+            closeModal.forEach(button => {
+                button.addEventListener('click', () => {
+                    transactionModal.style.display = 'none';
+                    newTransactionModal.style.display = 'none';
+                });
+            });
+            
+            // New transaction button
+            newTransactionBtn.addEventListener('click', () => {
+                newTransactionModal.style.display = 'block';
+            });
+            
+            // Submit transaction button
+            submitTransactionBtn.addEventListener('click', submitTransaction);
+            
+            // Clear transaction button
+            clearTransactionBtn.addEventListener('click', resetTransactionForm);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orthocare - Staff Appointments</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/w3.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f4f6f8;
+    }
+
+    .sidebar {
+      width: 250px;
+      background-color: #2d4569;
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      color: white;
+      z-index: 200;
+    }
+
+    .sidebar a {
+      display: block;
+      padding: 15px 20px;
+      color: white;
+      text-decoration: none;
+      border-left: 4px solid transparent;
+    }
+
+    .sidebar a:hover,
+    .sidebar a.active {
+      background-color: #1f324d;
+      border-left: 4px solid #92b4d3;
+    }
+
+    .header {
+      background-color: #2d4569;
+      color: white;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      position: fixed;
+      top: 0;
+      right: 0;
+      left: 250px;
+      z-index: 100;
+      height: 50px;
+    }
+
+    .header-title {
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .header-icons {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .main-content {
+      margin-left: 250px;
+      padding: 70px 20px 20px 20px;
+    }
+
+    .container {
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-top: 20px;
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 24px;
+      font-weight: 600;
+      color: #2d4569;
+    }
+
+    .top-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .top-buttons button {
+      background-color: #2d4569;
+      color: white;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .top-buttons button:hover {
+      background-color: #1f324d;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead {
+      background-color: #2d4569;
+      color: white;
+    }
+
+    th, td {
+      padding: 12px 15px;
+      border: 1px solid #ccc;
+      text-align: left;
+    }
+
+    .status-booked {
+      color: #1e88e5;
+      font-weight: bold;
+    }
+
+    .status-cancelled {
+      color: red;
+      font-weight: bold;
+    }
+
+    .pagination {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .pagination a {
+      display: inline-block;
+      padding: 8px 12px;
+      margin: 0 5px;
+      border: 1px solid #2d4569;
+      color: #2d4569;
+      text-decoration: none;
+      border-radius: 5px;
+    }
+
+    .pagination a.active,
+    .pagination a:hover {
+      background-color: #2d4569;
+      color: white;
+    }
+
+    .action-btn {
+      background-color: #dc0000;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin: 5px;
+    }
+        
+    .action-btn:hover {
+      background-color: #ff0000;
+    }
+
+    .search-container {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 15px;
+    }
+        
+    .search-container input {
+      padding: 8px 12px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      width: 200px;
+    }
+    
+    .add-apt-btn {
+      background-color: #2d4569;
+      color: white;
+      padding: 8px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 500;
+      margin: 4px;
+    }
+        
+    .add-apt-btn:hover {
+      background-color: #1f324d;
+    }
+
+    /* Modal Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.4);
+    }
+
+    .modal-content {
+      background-color: #fefefe;
+      margin: 5% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 60%;
+      max-width: 700px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .modal-header h3 {
+      color: #2d4569;
+      margin: 0;
+    }
+
+    .close {
+      color: #aaa;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .close:hover {
+      color: #555;
+    }
+
+    .modal-body {
+      margin-bottom: 20px;
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      padding-top: 10px;
+      border-top: 1px solid #ddd;
+    }
+
+    .modal-btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .modal-btn-primary {
+      background-color: #2d4569;
+      color: white;
+    }
+
+    .modal-btn-secondary {
+      background-color: #ccc;
+      color: #333;
+    }
+
+    .modal-btn-danger {
+      background-color: #dc0000;
+      color: white;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+      color: #333;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    /* Steps Navigation */
+    .steps-nav {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .step {
+      flex: 1;
+      text-align: center;
+      padding: 10px;
+      background-color: #f1f1f1;
+      border-radius: 4px;
+      margin: 0 5px;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .step.active {
+      background-color: #2d4569;
+      color: white;
+    }
+
+    .step:not(:last-child):after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      right: -15px;
+      width: 20px;
+      height: 2px;
+      background-color: #ccc;
+      transform: translateY(-50%);
+    }
+
+    .step-content {
+      display: none;
+    }
+
+    .step-content.active {
+      display: block;
+    }
+
+    /* Patient search results */
+    .patient-results {
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      margin-top: 10px;
+      display: none;
+    }
+
+    .patient-item {
+      padding: 8px 12px;
+      border-bottom: 1px solid #eee;
+      cursor: pointer;
+    }
+
+    .patient-item:hover {
+      background-color: #f0f0f0;
+    }
+
+    /* Date and time inputs */
+    .date-time-inputs {
+      display: flex;
+      gap: 10px;
+    }
+
+    .date-time-inputs .form-group {
+      flex: 1;
+    }
+
+    .input-with-icon {
+      position: relative;
+    }
+
+    .input-with-icon i {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #777;
+    }
+
+    /* Dentist selection */
+    .dentist-list {
+      margin-top: 10px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .dentist-item {
+      display: flex;
+      align-items: center;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      margin-bottom: 8px;
+      cursor: pointer;
+    }
+
+    .dentist-item:hover {
+      background-color: #f0f0f0;
+    }
+
+    .dentist-item.selected {
+      border-color: #2d4569;
+      background-color: rgba(45, 69, 105, 0.1);
+    }
+
+    .dentist-item input[type="radio"] {
+      margin-right: 10px;
+    }
+
+    .dentist-info {
+      flex: 1;
+    }
+
+    .dentist-name {
+      font-weight: 500;
+    }
+
+    .dentist-spec {
+      font-size: 0.85em;
+      color: #777;
+    }
+
+    /* Success Message */
+    .success-message {
+      padding: 15px;
+      background-color: #d4edda;
+      color: #155724;
+      border-radius: 4px;
+      margin-bottom: 15px;
+      display: none;
+    }
+
+    /* Error Message */
+    .error-message {
+      padding: 15px;
+      background-color: #f8d7da;
+      color: #721c24;
+      border-radius: 4px;
+      margin-bottom: 15px;
+      display: none;
+    }
+
+    /* Loading Spinner */
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(0, 0, 0, 0.1);
+      border-radius: 50%;
+      border-top-color: #2d4569;
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 10px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="sidebar">
+    <a href="{{url_for('staff_dashboard')}}" style="margin-top:50px;">Dashboard</a>
+    <a href="{{url_for('staff_patient_management')}}">Patient Management</a>
+    <a href="" class="active">Appointment</a>
+    <a href="">Transactions</a>
+    <a href="{{url_for('staff_treatments')}}">Treatments</a>
+    <a href="{{url_for('staff_settings')}}">Settings</a>
+    <a href="{{ url_for('logout') }}">Logout</a>
+  </div>
+
+  <div class="header">
+    <div class="header-title">Staff | Appointments</div>
+    <div class="header-icons">
+      <span>🔔</span>
+      <span>👤</span>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <div class="container">
+      <h2>Appointments</h2>
+
+      <div class="search-container">
+        <input type="text" id="searchInput" placeholder="Search...">
+      </div>
+
+      <button class="add-apt-btn" id="openAddAppointmentModal">Add Appointment</button>
+
+      <div id="successAlert" class="success-message"></div>
+      <div id="errorAlert" class="error-message"></div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>PATIENT NAME</th>
+            <th>TIME OF APPT.</th>
+            <th>DATE OF APPT.</th>
+            <th>ASSIGNED DENTIST</th>
+            <th>STATUS</th>
+            <th>ACTION</th>
+          </tr>
+        </thead>
+        <tbody id="appointmentsTableBody">
+          {% for appointment in appointments %}
+          <tr>
+            <td>{{ appointment.PATIENT_NAME }}</td>
+            <td>{{ appointment.APPT_TIME }}</td>
+            <td>{{ appointment.APPT_DATE }}</td>
+            <td>{{ appointment.DENTIST_NAME }}</td>
+            <td>
+              <span class="status-{{ appointment.APPT_STATUS.lower() }}">
+                {{ appointment.APPT_STATUS }}
+              </span>
+            </td>
+            <td>
+              {% if appointment.APPT_STATUS != 'CANCELLED' %}
+              <button class="action-btn" onclick="openCancelModal({{ appointment.APPT_ID }})">Cancel</button>
+              {% else %}
+              <em>Cancelled: {{ appointment.CANCEL_RES }}</em>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <div class="pagination">
+        <a href="#">&laquo;</a>
+        <a href="#" class="active">1</a>
+        <a href="#">2</a>
+        <a href="#">&raquo;</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Appointment Modal -->
+  <div id="addAppointmentModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Add New Appointment</h3>
+        <span class="close">&times;</span>
+      </div>
+
+      <div class="modal-body">
+        <form id="appointmentForm">
+          <!-- Steps Navigation -->
+          <div class="steps-nav">
+            <div class="step active" data-step="1">1. Select Patient</div>
+            <div class="step" data-step="2">2. Choose Date & Time</div>
+            <div class="step" data-step="3">3. Select Dentist</div>
+          </div>
+
+          <!-- Step 1: Patient Selection -->
+          <div class="step-content active" id="step1">
+            <div class="form-group">
+              <label for="patientSearch">Search Patient:</label>
+              <input type="text" id="patientSearch" class="form-control" placeholder="Type patient name...">
+              <input type="hidden" id="selectedPatientId">
+            </div>
+            <div class="patient-results" id="patientResults"></div>
+            <div class="form-group">
+              <div id="selectedPatientInfo"></div>
+            </div>
+          </div>
+
+          <!-- Step 2: Date & Time Selection -->
+          <div class="step-content" id="step2">
+            <div class="date-time-inputs">
+              <div class="form-group">
+                <label for="appointmentDate">Appointment Date:</label>
+                <div class="input-with-icon">
+                  <input type="text" id="appointmentDate" class="form-control" placeholder="Select date...">
+                  <i class="fas fa-calendar"></i>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="appointmentTime">Appointment Time:</label>
+                <div class="input-with-icon">
+                  <input type="text" id="appointmentTime" class="form-control" placeholder="Select time...">
+                  <i class="fas fa-clock"></i>
+                </div>
+              </div>
+            </div>
+            <div id="timeAvailabilityMessage"></div>
+          </div>
+
+          <!-- Step 3: Dentist Selection -->
+          <div class="step-content" id="step3">
+            <div class="form-group">
+              <label>Available Dentists:</label>
+              <div class="dentist-list" id="dentistList">
+                <div id="loadingDentists">
+                  <div class="spinner"></div> Loading available dentists...
+                </div>
+                <div id="noDentistsMessage" style="display: none;">
+                  No dentists available for the selected time. Please choose a different time.
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="modal-btn modal-btn-secondary" id="prevBtn" style="display: none;">Previous</button>
+        <button type="button" class="modal-btn modal-btn-primary" id="nextBtn">Next</button>
+        <button type="button" class="modal-btn modal-btn-primary" id="submitBtn" style="display: none;">Create Appointment</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cancel Appointment Modal -->
+  <div id="cancelAppointmentModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Cancel Appointment</h3>
+        <span class="close">&times;</span>
+      </div>
+
+      <div class="modal-body">
+        <form id="cancelForm">
+          <input type="hidden" id="appointmentIdToCancel">
+          <div class="form-group">
+            <label for="cancelReason">Reason for Cancellation:</label>
+            <textarea id="cancelReason" class="form-control" rows="4" required></textarea>
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="modal-btn modal-btn-secondary" id="cancelModalCloseBtn">Close</button>
+        <button type="button" class="modal-btn modal-btn-danger" id="confirmCancelBtn">Confirm Cancellation</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
+  <script>
+    // DOM Elements
+    const addAppointmentModal = document.getElementById('addAppointmentModal');
+    const cancelAppointmentModal = document.getElementById('cancelAppointmentModal');
+    const openAddAppointmentModalBtn = document.getElementById('openAddAppointmentModal');
+    const closeButtons = document.querySelectorAll('.close');
+    const cancelModalCloseBtn = document.getElementById('cancelModalCloseBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const prevBtn = document.getElementById('prevBtn');
+    const submitBtn = document.getElementById('submitBtn');
+    const confirmCancelBtn = document.getElementById('confirmCancelBtn');
+    const steps = document.querySelectorAll('.step');
+    const stepContents = document.querySelectorAll('.step-content');
+    const patientSearch = document.getElementById('patientSearch');
+    const patientResults = document.getElementById('patientResults');
+    const selectedPatientInfo = document.getElementById('selectedPatientInfo');
+    const selectedPatientId = document.getElementById('selectedPatientId');
+    const appointmentDate = document.getElementById('appointmentDate');
+    const appointmentTime = document.getElementById('appointmentTime');
+    const dentistList = document.getElementById('dentistList');
+    const loadingDentists = document.getElementById('loadingDentists');
+    const noDentistsMessage = document.getElementById('noDentistsMessage');
+    const timeAvailabilityMessage = document.getElementById('timeAvailabilityMessage');
+    const successAlert = document.getElementById('successAlert');
+    const errorAlert = document.getElementById('errorAlert');
+    const searchInput = document.getElementById('searchInput');
+    
+    let currentStep = 1;
+    
+    // Initialize date and time pickers
+    flatpickr(appointmentDate, {
+      minDate: "today",
+      dateFormat: "Y-m-d",
+      onChange: function(selectedDates, dateStr) {
+        checkTimeAvailability();
+      }
+    });
+    
+    flatpickr(appointmentTime, {
+      enableTime: true,
+      noCalendar: true,
+      dateFormat: "H:i",
+      minTime: "09:00",
+      maxTime: "17:00",
+      onChange: function(selectedDates, dateStr) {
+        checkTimeAvailability();
+      }
+    });
+
+    // Event Listeners
+    openAddAppointmentModalBtn.addEventListener('click', function() {
+      addAppointmentModal.style.display = 'block';
+      resetForm();
+    });
+
+    closeButtons.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        addAppointmentModal.style.display = 'none';
+        cancelAppointmentModal.style.display = 'none';
+      });
+    });
+
+    cancelModalCloseBtn.addEventListener('click', function() {
+      cancelAppointmentModal.style.display = 'none';
+    });
+
+    // Navigation between steps
+    nextBtn.addEventListener('click', function() {
+      // Validation for each step
+      if (currentStep === 1) {
+        if (!selectedPatientId.value) {
+          showErrorMessage('Please select a patient');
+          return;
+        }
+      } else if (currentStep === 2) {
+        if (!appointmentDate.value || !appointmentTime.value) {
+          showErrorMessage('Please select both date and time');
+          return;
+        }
+        
+        // Load available dentists for the selected time
+        loadAvailableDentists();
+      }
+      
+      if (currentStep < 3) {
+        currentStep++;
+        updateStepDisplay();
+      }
+    });
+
+    prevBtn.addEventListener('click', function() {
+      if (currentStep > 1) {
+        currentStep--;
+        updateStepDisplay();
+      }
+    });
+
+    // Step navigation
+    steps.forEach(function(step) {
+      step.addEventListener('click', function() {
+        const stepNum = parseInt(this.getAttribute('data-step'));
+        
+        // Can only go back or to current step
+        if (stepNum <= currentStep) {
+          currentStep = stepNum;
+          updateStepDisplay();
+        }
+      });
+    });
+
+    // Patient search
+    patientSearch.addEventListener('input', function() {
+  const searchTerm = this.value.trim();
+  
+  if (searchTerm.length >= 2) {
+    fetch(`/api/search_patients?term=${searchTerm}`)
+      .then(response => response.json())
+      .then(data => {
+        // Clear previous results
+        patientResults.innerHTML = '';
+        
+        if (data.length > 0) {
+          // Create HTML for patient results
+          data.forEach(patient => {
+            const patientItem = document.createElement('div');
+            patientItem.className = 'patient-item';
+            patientItem.textContent = patient.PATIENT_NAME;
+            patientItem.addEventListener('click', () => {
+              // Use the correct field names when selecting a patient
+              selectPatient({
+                id: patient.PATIENT_ID,
+                name: patient.PATIENT_NAME,
+                phone: patient.PATIENT_PHO_NUM,
+                email: patient.PATIENT_EMAIL_ADD
+              });
+            });
+            patientResults.appendChild(patientItem);
+          });
+        } else {
+          patientResults.innerHTML = '<div class="patient-item">No patients found</div>';
+        }
+        patientResults.style.display = 'block';
+      })
+      .catch(error => {
+        console.error('Error searching patients:', error);
+        patientResults.innerHTML = '<div class="patient-item">Error searching patients</div>';
+        patientResults.style.display = 'block';
+      });
+  } else {
+    patientResults.style.display = 'none';
+  }
+});
+
+    // Create appointment submission
+    submitBtn.addEventListener('click', function() {
+      // Get selected dentist
+      const selectedDentist = document.querySelector('input[name="dentist"]:checked');
+      
+      if (!selectedDentist) {
+        showErrorMessage('Please select a dentist');
+        return;
+      }
+      
+      const appointmentData = {
+        patient_id: selectedPatientId.value,
+        dentist_id: selectedDentist.value,
+        appointment_date: appointmentDate.value,
+        appointment_time: appointmentTime.value
+      };
+      
+      // For creating appointments
+      fetch('/staff/create_appointment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(appointmentData)
+      })
+      .then(response => {
+        // Check if response is ok before trying to parse JSON
+        if (!response.ok) {
+          throw new Error('Server responded with an error');
+        }
+        return response.json();
+      })
+      .then(data => {
+        addAppointmentModal.style.display = 'none';
+        showSuccessMessage(data.message || 'Appointment created successfully');
+        // Reload appointments list
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+      })
+      .catch(error => {
+        console.error('Error creating appointment:', error);
+        showErrorMessage('Appointment was created but there was an error displaying the confirmation. Please refresh the page.');
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      });
+    });
+
+    // Cancel appointment
+    confirmCancelBtn.addEventListener('click', function() {
+      const appointmentId = document.getElementById('appointmentIdToCancel').value;
+      const cancelReason = document.getElementById('cancelReason').value.trim();
+      
+      if (!cancelReason) {
+        showErrorMessage('Please provide a reason for cancellation');
+        return;
+      }
+      
+      const cancellationData = {
+        appointment_id: appointmentId,
+        cancel_reason: cancelReason
+      };
+      
+      fetch('/staff/cancel_appointment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(cancellationData)
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Server responded with an error');
+        }
+        return response.json();
+      })
+      .then(data => {
+        cancelAppointmentModal.style.display = 'none';
+        showSuccessMessage(data.message || 'Appointment cancelled successfully');
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+      })
+      .catch(error => {
+        console.error('Error cancelling appointment:', error);
+        showErrorMessage('Appointment was cancelled but there was an error displaying the confirmation. Please refresh the page.');
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      });
+    });
+
+    // Search in appointments table
+    searchInput.addEventListener('input', function() {
+      const searchTerm = this.value.toLowerCase();
+      const rows = document.querySelectorAll('#appointmentsTableBody tr');
+      
+      rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        if (text.includes(searchTerm)) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    });
+
+    // Functions
+    function updateStepDisplay() {
+      // Update step indicators
+      steps.forEach(step => {
+        const stepNum = parseInt(step.getAttribute('data-step'));
+        if (stepNum === currentStep) {
+          step.classList.add('active');
+        } else {
+          step.classList.remove('active');
+        }
+      });
+      
+      // Update step content visibility
+      stepContents.forEach(content => {
+        content.classList.remove('active');
+      });
+      document.getElementById(`step${currentStep}`).classList.add('active');
+      
+      // Show/hide navigation buttons
+      if (currentStep === 1) {
+        prevBtn.style.display = 'none';
+        nextBtn.style.display = 'block';
+        submitBtn.style.display = 'none';
+      } else if (currentStep === 3) {
+        prevBtn.style.display = 'block';
+        nextBtn.style.display = 'none';
+        submitBtn.style.display = 'block';
+      } else {
+        prevBtn.style.display = 'block';
+        nextBtn.style.display = 'block';
+        submitBtn.style.display = 'none';
+      }
+    }
+
+    function selectPatient(patientData) {
+      selectedPatientId.value = patientData.id;
+      selectedPatientInfo.innerHTML = `
+        <div style="padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+          <strong>${patientData.name}</strong><br>
+          Phone: ${patientData.phone}<br>
+          Email: ${patientData.email}
+        </div>
+      `;
+      patientResults.style.display = 'none';
+      patientSearch.value = patientData.name;
+    }
+
+    function checkTimeAvailability() {
+      const date = appointmentDate.value;
+      const time = appointmentTime.value;
+      
+      if (date && time) {
+        timeAvailabilityMessage.innerHTML = '<div class="spinner"></div> Checking availability...';
+        timeAvailabilityMessage.style.display = 'block';
+        
+        fetch(`/api/check_appointment_availability?date=${date}&time=${time}`)
+          .then(response => response.json())
+          .then(data => {
+            if (data.available) {
+              timeAvailabilityMessage.innerHTML = '<div style="color: green;">✓ Time slot is available</div>';
+            } else {
+              timeAvailabilityMessage.innerHTML = '<div style="color: red;">✗ This time slot is already booked</div>';
+            }
+          })
+          .catch(error => {
+            console.error('Error checking availability:', error);
+            timeAvailabilityMessage.innerHTML = '<div style="color: orange;">Unable to check availability</div>';
+          });
+      } else {
+        timeAvailabilityMessage.style.display = 'none';
+      }
+    }
+
+    function loadAvailableDentists() {
+      const date = appointmentDate.value;
+      const time = appointmentTime.value;
+      
+      if (date && time) {
+        loadingDentists.style.display = 'block';
+        noDentistsMessage.style.display = 'none';
+        
+        // Clear previous dentist list
+        const dentistItems = dentistList.querySelectorAll('.dentist-item');
+        dentistItems.forEach(item => {
+          if (item !== loadingDentists && item !== noDentistsMessage) {
+            item.remove();
+          }
+        });
+        
+        fetch(`/api/available_dentists?date=${date}&time=${time}`)
+          .then(response => response.json())
+          .then(data => {
+            loadingDentists.style.display = 'none';
+            
+            if (data.length > 0) {
+              data.forEach(dentist => {
+                const dentistItem = document.createElement('div');
+                dentistItem.className = 'dentist-item';
+                dentistItem.innerHTML = `
+                  <input type="radio" name="dentist" value="${dentist.DENTIST_ID}" id="dentist_${dentist.DENTIST_ID}">
+                  <div class="dentist-info">
+                    <div class="dentist-name">${dentist.DENTIST_NAME}</div>
+                    <div class="dentist-spec">${dentist.DENTIST_SPEC}</div>
+                  </div>
+                `;
+                
+                dentistList.appendChild(dentistItem);
+                
+                // Add click event to make selection easier
+                dentistItem.addEventListener('click', function() {
+                  const radio = this.querySelector('input[type="radio"]');
+                  radio.checked = true;
+                  
+                  // Update selected styling
+                  document.querySelectorAll('.dentist-item').forEach(item => {
+                    item.classList.remove('selected');
+                  });
+                  this.classList.add('selected');
+                });
+              });
+            } else {
+              noDentistsMessage.style.display = 'block';
+            }
+          })
+          .catch(error => {
+            console.error('Error loading dentists:', error);
+            loadingDentists.style.display = 'none';
+            noDentistsMessage.textContent = 'Error loading dentists. Please try again.';
+            noDentistsMessage.style.display = 'block';
+          });
+      }
+    }
+
+    function resetForm() {
+      // Reset form fields
+      document.getElementById('appointmentForm').reset();
+      document.getElementById('cancelForm').reset();
+      selectedPatientInfo.innerHTML = '';
+      selectedPatientId.value = '';
+      timeAvailabilityMessage.style.display = 'none';
+      
+      // Reset steps
+      currentStep = 1;
+      updateStepDisplay();
+      
+      // Clear error messages
+      clearMessages();
+    }
+
+    function openCancelModal(appointmentId) {
+      document.getElementById('appointmentIdToCancel').value = appointmentId;
+      document.getElementById('cancelReason').value = '';
+      cancelAppointmentModal.style.display = 'block';
+    }
+
+    function showSuccessMessage(message) {
+      successAlert.textContent = message;
+      successAlert.style.display = 'block';
+      errorAlert.style.display = 'none';
+      
+      // Auto hide after 5 seconds
+      setTimeout(() => {
+        successAlert.style.display = 'none';
+      }, 5000);
+    }
+
+    function showErrorMessage(message) {
+      errorAlert.textContent = message;
+      errorAlert.style.display = 'block';
+      successAlert.style.display = 'none';
+      
+      // Auto hide after 5 seconds
+      setTimeout(() => {
+        errorAlert.style.display = 'none';
+      }, 5000);
+    }
+
+    function clearMessages() {
+      successAlert.style.display = 'none';
+      errorAlert.style.display = 'none';
+    }
+
+    // Close modals when clicking outside
+    window.addEventListener('click', function(event) {
+      if (event.target === addAppointmentModal) {
+        addAppointmentModal.style.display = 'none';
+      }
+      if (event.target === cancelAppointmentModal) {
+        cancelAppointmentModal.style.display = 'none';
+      }
+    });
+  </script>
+</body>
+</html>

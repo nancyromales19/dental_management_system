@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orthocare - My Appointments</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/w3.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+        }
+        
+        .header {
+            background-color: #2d4569;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: fixed;
+            top: 0;
+            right: 0;
+            left: 250px; /* Make space for sidebar */
+            z-index: 100;
+            height: 50px;
+        }
+        
+        .header-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .header-icons {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .sidebar {
+            width: 250px;
+            background-color: #2d4569;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            color: white;
+            z-index: 200;
+        }
+        
+        .sidebar a {
+            display: block;
+            padding: 15px 20px;
+            color: white;
+            text-decoration: none;
+            border-left: 4px solid transparent;
+        }
+        
+        .sidebar a:hover,
+        .sidebar a.active {
+            background-color: #1f324d;
+            border-left: 4px solid #92b4d3;
+        }
+        
+        .main-content {
+            margin-left: 250px;
+            padding: 70px 20px 20px 20px; /* Add top padding to account for header */
+            background-color: #e5e9f0;
+            min-height: 100vh;
+        }
+        
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .page-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2d4569;
+        }
+        
+        .search-container {
+            position: relative;
+            width: 250px;
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 8px 10px 8px 35px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .date-picker {
+            background-color: white;
+            border-radius: 4px;
+            padding: 10px 15px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            width: fit-content;
+        }
+        
+        .date-picker-icon {
+            margin-right: 10px;
+            color: #2d4569;
+        }
+        
+        .date-input {
+            border: none;
+            font-size: 14px;
+            color: #333;
+            outline: none;
+        }
+        
+        .appointments-table {
+            width: 100%;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-collapse: collapse;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .appointments-table th {
+            background-color: #2d4569;
+            color: white;
+            text-align: left;
+            padding: 15px;
+            font-size: 14px;
+        }
+        
+        .appointments-table td {
+            padding: 15px;
+            border-top: 1px solid #e0e0e0;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .action-cell {
+            position: relative;
+        }
+        
+        .action-menu {
+            cursor: pointer;
+            width: 30px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .action-dropdown {
+            position: absolute;
+            right: 0;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: none;
+            z-index: 10;
+            min-width: 150px;
+        }
+        
+        .action-dropdown.active {
+            display: block;
+        }
+        
+        .action-dropdown a {
+            display: block;
+            padding: 10px 15px;
+            color: #333;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .action-dropdown a:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+        }
+        
+        .pagination-btn {
+            background-color: white;
+            border: 1px solid #ddd;
+            color: #333;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 0 5px;
+        }
+        
+        .pagination-btn.active {
+            background-color: #2d4569;
+            color: white;
+            border-color: #2d4569;
+        }
+        
+        .no-appointments {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .modal {
+            background-color: white;
+            width: 90%;
+            max-width: 400px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+        
+        .modal-header {
+            background-color: #2d4569;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-title {
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        
+        .modal-body {
+            padding: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: #333;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .modal-footer {
+            padding: 15px 20px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 8px 15px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .btn-cancel {
+            background-color: #e0e0e0;
+            color: #333;
+            border: none;
+        }
+        
+        .btn-submit {
+            background-color: #2d4569;
+            color: white;
+            border: none;
+        }
+        
+        /* Details Modal */
+        .details-modal {
+            max-width: 450px;
+        }
+        
+        .detail-item {
+            display: flex;
+            margin-bottom: 15px;
+        }
+        
+        .detail-label {
+            width: 100px;
+            font-weight: bold;
+            color: #666;
+        }
+        
+        .detail-value {
+            flex: 1;
+            color: #333;
+        }
+        
+        .btn-reschedule {
+            padding: 6px 12px;
+            margin-right: 6px;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        /* Green Reschedule button */
+        .btn-reschedule {
+            background-color: #28a745;
+            color: white;
+        }
+        .btn-reschedule:hover {
+            background-color: #1e7e34;
+        }
+
+        /* Disabled button style */
+        .disabled-btn {
+            background-color: #ccc;
+            color: #666;
+            cursor: not-allowed;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <a href="{{ url_for('dentist_dashboard') }}" style="margin-top:50px;">Dashboard</a>
+        <a href="{{url_for('dentist_patient')}}">My Patients</a>
+        <a href="" class="active">My Appointments</a>
+        <a href="{{ url_for('dentist_treatments') }}">Treatments</a>
+        <a href="">Dental Cases</a>
+        <a href="{{ url_for('dentist_settings') }}">Settings</a>
+        <a href="{{ url_for('logout') }}">Log out</a>
+    </div>
+    
+    <div class="header">
+        <div class="header-title">Dentist | My Appointments</div>
+        <div class="header-icons">
+            <span>🔔</span>
+            <span>👤 {{ dentist_name }}</span>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="content-header">
+            <div class="page-title">Appointments</div>
+            <div class="search-container">
+                <span class="search-icon">🔍</span>
+                <input type="text" class="search-input" placeholder="Search patients..." id="searchInput">
+            </div>
+        </div>
+        
+        <div class="date-picker">
+            <span class="date-picker-icon">📅</span>
+            <input type="date" id="appointmentDate" class="date-input" value="{{ today_date }}">
+        </div>
+        
+        {% if appointments %}
+        <table class="appointments-table">
+            <thead>
+                <tr>
+                    <th>PATIENT NAME</th>
+                    <th>TIME</th>
+                    <th>DATE</th>
+                    <th>STATUS</th>
+                    <th>ACTION</th>
+                </tr>
+            </thead>
+            <tbody id="appointmentsTableBody">
+                {% for appt in appointments %}
+                <tr data-patient="{{ appt.PATIENT_NAME | lower }}">
+                    <td>{{ appt.PATIENT_NAME }}</td>
+                    <td>{{ appt.APPT_TIME }}</td>
+                    <td>{{ appt.APPT_DATE }}</td>
+                    <td>{{ appt.APPT_STATUS }}</td>
+                    <td class="action-cell">
+                        {% if appt.APPT_STATUS != 'CANCELLED' %}
+                            <button class="btn-reschedule"
+                                onclick="openRescheduleModal({{ appt.APPT_ID }}, '{{ appt.PATIENT_NAME }}')">
+                                Reschedule
+                            </button>
+                        {% else %}
+                            <button class="btn-reschedule disabled-btn" disabled>Reschedule</button>
+                        {% endif %}
+                    </td>                                  
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <div class="pagination">
+            <button class="pagination-btn" id="prevPage">«</button>
+            <div id="pageNumbers"></div>
+            <button class="pagination-btn" id="nextPage">»</button>
+        </div>
+        {% else %}
+        <div class="no-appointments">
+            <p>You have no appointments scheduled.</p>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Reschedule Modal -->
+    <div class="modal-overlay" id="rescheduleModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Reschedule Patient</div>
+                <button class="modal-close" onclick="closeModal('rescheduleModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Patient Name:</label>
+                    <input type="text" class="form-control" id="patientName" readonly>
+                    <input type="hidden" id="appointmentId">
+                </div>
+                <div class="form-group">
+                    <label>Date:</label>
+                    <input type="date" class="form-control" id="newDate">
+                </div>
+                <div class="form-group">
+                    <label>Time:</label>
+                    <input type="time" class="form-control" id="newTime">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-cancel" onclick="closeModal('rescheduleModal')">Cancel</button>
+                <button class="btn btn-submit" onclick="rescheduleAppointment()">Save</button>
+            </div>
+        </div>
+    </div>
+    
+    
+    <script>
+        // Format today's date for the date picker
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            const formattedDate = `${year}-${month}-${day}`;
+            document.getElementById('appointmentDate').value = formattedDate;
+            
+            setupPagination();
+            setupSearch();
+        });
+        
+        // Toggle action dropdown menu
+        function toggleActionMenu(id) {
+            // First close all open menus
+            document.querySelectorAll('.action-dropdown').forEach(menu => {
+                menu.classList.remove('active');
+            });
+            
+            // Toggle the clicked menu
+            var menu = document.getElementById('actionMenu' + id);
+            menu.classList.toggle('active');
+        }
+        
+        // Close dropdowns when clicking elsewhere
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.action-menu')) {
+                document.querySelectorAll('.action-dropdown').forEach(menu => {
+                    menu.classList.remove('active');
+                });
+            }
+        });
+        
+        // View details function
+        function viewDetails(patient, time, date, purpose) {
+            document.getElementById('detail-patient').textContent = patient;
+            document.getElementById('detail-time').textContent = time;
+            document.getElementById('detail-date').textContent = date;
+            
+            document.getElementById('detailsModal').style.display = 'flex';
+        }
+        
+        // Modal functions
+        function openRescheduleModal(appointmentId, patientName) {
+            document.getElementById("rescheduleModal").style.display = "flex";
+            document.getElementById("patientName").value = patientName;
+            document.getElementById("appointmentId").value = appointmentId;
+            
+            // Set default date to tomorrow
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const year = tomorrow.getFullYear();
+            const month = String(tomorrow.getMonth() + 1).padStart(2, '0');
+            const day = String(tomorrow.getDate()).padStart(2, '0');
+            document.getElementById("newDate").value = `${year}-${month}-${day}`;
+            
+            // Set default time
+            document.getElementById("newTime").value = "09:00";
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = "none";
+        }
+        
+        // Close modal when clicking outside
+        window.addEventListener('click', function(event) {
+            var rescheduleModal = document.getElementById("rescheduleModal");
+            var detailsModal = document.getElementById("detailsModal");
+            
+            if (event.target === rescheduleModal) {
+                closeModal('rescheduleModal');
+            }
+            
+            if (event.target === detailsModal) {
+                closeModal('detailsModal');
+            }
+        });
+        
+        // Reschedule appointment function
+        function rescheduleAppointment() {
+        const appointmentId = document.getElementById('appointmentId').value;
+        const newDate = document.getElementById('newDate').value;
+        const newTime = document.getElementById('newTime').value;
+        
+        if (!newDate || !newTime) {
+            alert('Please select both date and time');
+            return;
+        }
+        
+        // Send reschedule request to server
+        fetch('/dentist/reschedule_appointment', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                appointment_id: appointmentId,
+                new_date: newDate,
+                new_time: newTime
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Appointment rescheduled successfully!');
+                closeModal('rescheduleModal');
+                // Reload the page to reflect changes
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while rescheduling the appointment');
+        });
+    }
+        
+        // Setup pagination
+        function setupPagination() {
+            const rowsPerPage = 5;
+            const rows = document.querySelectorAll('#appointmentsTableBody tr');
+            const pageCount = Math.ceil(rows.length / rowsPerPage);
+            let currentPage = 1;
+            
+            function showPage(page) {
+                const start = (page - 1) * rowsPerPage;
+                const end = start + rowsPerPage;
+                
+                rows.forEach((row, index) => {
+                    row.style.display = index >= start && index < end ? '' : 'none';
+                });
+                
+                updatePageNumbers();
+            }
+            
+            function updatePageNumbers() {
+                const pageNumbersContainer = document.getElementById('pageNumbers');
+                pageNumbersContainer.innerHTML = '';
+                
+                for (let i = 1; i <= pageCount; i++) {
+                    const btn = document.createElement('button');
+                    btn.className = 'pagination-btn' + (i === currentPage ? ' active' : '');
+                    btn.textContent = i;
+                    btn.addEventListener('click', () => {
+                        currentPage = i;
+                        showPage(currentPage);
+                    });
+                    pageNumbersContainer.appendChild(btn);
+                }
+            }
+            
+            document.getElementById('prevPage').addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    showPage(currentPage);
+                }
+            });
+            
+            document.getElementById('nextPage').addEventListener('click', () => {
+                if (currentPage < pageCount) {
+                    currentPage++;
+                    showPage(currentPage);
+                }
+            });
+            
+            if (pageCount > 0) {
+                showPage(currentPage);
+            }
+        }
+        
+        // Setup search functionality
+        function setupSearch() {
+            const searchInput = document.getElementById('searchInput');
+            const rows = document.querySelectorAll('#appointmentsTableBody tr');
+            
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                
+                rows.forEach(row => {
+                    const patientName = row.getAttribute('data-patient');
+                    if (patientName.includes(searchTerm)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+                
+                // Reset pagination after search
+                setupPagination();
+            });
+        }
+        
+        // Filter appointments by date
+        document.getElementById('appointmentDate').addEventListener('change', function() {
+            const selectedDate = this.value;
+            window.location.href = `/dentist_appointment?date=${selectedDate}`;
+        });
+    </script>
+</body>
+</html>

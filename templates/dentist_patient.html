@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orthocare - Patient Management</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+        }
+        
+        .header {
+            background-color: #2d4569;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: fixed;
+            top: 0;
+            right: 0;
+            left: 250px; /* Make space for sidebar */
+            z-index: 100;
+            height: 50px;
+        }
+        
+        .header-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .header-icons {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .sidebar {
+            width: 250px;
+            background-color: #2d4569;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            color: white;
+            z-index: 200;
+        }
+        
+        .sidebar a {
+            display: block;
+            padding: 15px 20px;
+            color: white;
+            text-decoration: none;
+            border-left: 4px solid transparent;
+        }
+        
+        .sidebar a:hover,
+        .sidebar a.active {
+            background-color: #1f324d;
+            border-left: 4px solid #92b4d3;
+        }
+        
+        .main-content {
+            margin-left: 250px;
+            padding: 70px 20px 20px 20px; /* Add top padding to account for header */
+            background-color: #e5e9f0;
+            min-height: 100vh;
+        }
+        
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .page-title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .search-container {
+            position: relative;
+        }
+        
+        .search-input {
+            padding: 8px 12px 8px 35px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 200px;
+            font-size: 14px;
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .patients-table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .patients-table th {
+            background-color: white;
+            text-align: left;
+            padding: 12px 15px;
+            font-weight: bold;
+            color: #333;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .patients-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+            color: #555;
+        }
+        
+        .patients-table tr:hover {
+            background-color: #f9f9f9;
+        }
+        
+        .action-cell {
+            text-align: center;
+        }
+        
+        .action-menu {
+            cursor: pointer;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .status {
+            padding: 5px 10px;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+        
+        .status-active {
+            color: #2e7d32;
+        }
+        
+        .status-deactivated {
+            color: #c62828;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            gap: 5px;
+        }
+        
+        .pagination-btn {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #e0e0e0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .pagination-btn.active {
+            background-color: #2d4569;
+            color: white;
+        }
+        
+        .pagination-btn:hover:not(.active) {
+            background-color: #d0d0d0;
+        }
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 20px;
+            width: 60%;
+            border-radius: 5px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .dropdown-menu {
+            position: absolute;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 5px;
+            z-index: 100;
+            border-radius: 4px;
+        }
+
+        .dropdown-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            color: #333;
+        }
+        
+        .dropdown-item:hover {
+            background-color: #f5f5f5;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2d4569;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        .patient-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .form-full-width {
+            grid-column: span 2;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group label {
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        .form-control {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        .btn-primary {
+            background-color: #2d4569;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .patient-details-section {
+            margin-bottom: 25px;
+        }
+        
+        .patient-details-section h4 {
+            color: #2d4569;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #eee;
+        }
+        
+        .insurance-card, .appointment-card, .treatment-card {
+            background-color: #f9f9f9;
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .status-booked {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        
+        .status-completed {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .status-cancelled {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        .tab-container {
+            margin-top: 20px;
+        }
+        
+        .tab-header {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .tab-btn {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .tab-btn.active {
+            border-bottom: 2px solid #2d4569;
+            color: #2d4569;
+        }
+        
+        .tab-content {
+            padding: 20px 0;
+        }
+        
+        .tab-panel {
+            display: none;
+        }
+        
+        .tab-panel.active {
+            display: block;
+        }
+        
+        .menu-dots {
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        /* Add to your existing CSS */
+    .error-highlight {
+        border: 1px solid #ff0000 !important;
+        background-color: white;
+    }
+
+    .error-message {
+        color: #ff0000;
+        font-size: 12px;
+        margin-top: 5px;
+        display: none;
+    }
+
+    .success-message {
+    color: #2E7D32; /* Green text */
+    font-size: 12px;
+    margin-top: 5px;
+    display: none;
+    }
+
+    /* For the error modal */
+    #errorModal, #successModal {
+        animation: fadeIn 0.3s ease-in;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+        to { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/w3.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="sidebar">
+        <a href="{{url_for ('dentist_dashboard')}}" style="margin-top:50px;">Dashboard</a>
+        <a href="" class="active">My Patients</a>
+        <a href="{{url_for ('dentist_appointment')}}">My Appointments</a>
+        <a href="transactions.html">Transactions</a>
+        <a href="{{url_for ('dentist_treatments')}}">Treatments</a>
+        <a href="dental_cases.html">Dental Cases</a>
+        <a href="{{url_for ('dentist_settings')}}">Settings</a>
+        <a href="{{url_for ('logout')}}">Log out</a>
+    </div>
+    
+    <div class="header">
+        <div class="header-title">Dentist | Patient Management</div>
+        <div class="header-icons">
+            <span>🔔</span>
+            <span>👤</span>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="content-header">
+            <div class="page-title">My Patients List</div>
+            <div class="search-container">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="searchInput" class="search-input" placeholder="Search...">
+            </div>
+        </div>
+        
+        <table class="patients-table">
+            <thead>
+                <tr>
+                    <th>LASTNAME</th>
+                    <th>FIRSTNAME</th>
+                    <th>CONTACT NO.</th>
+                    <th>EMAIL ADDRESS</th>
+                    <th>STATUS</th>
+                    <th>ACTION</th>
+                </tr>
+            </thead>
+            <tbody id="patientsTableBody">
+                <!-- Patient data will be loaded here dynamically -->
+            </tbody>
+        </table>
+        
+        <div class="pagination">
+            <button class="pagination-btn">«</button>
+            <button class="pagination-btn active">1</button>
+            <button class="pagination-btn">2</button>
+            <button class="pagination-btn">»</button>
+        </div>
+        
+        <!-- Patient Details Modal -->
+        <div id="patientDetailsModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Patient Details</h3>
+                    <button class="close-btn" id="closePatientDetailsModal">&times;</button>
+                </div>
+                <div id="patientDetailsContent">
+                    <!-- Patient details will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Patient Modal -->
+        <div id="editPatientModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Edit Patient</h3>
+                    <button class="close-btn" id="closeEditPatientModal">&times;</button>
+                </div>
+                <form id="editPatientForm" class="patient-form">
+                    <input type="hidden" id="editPatientId" name="patientId">
+                    <div class="form-group">
+                        <label for="editLastName">Last Name *</label>
+                        <input type="text" id="editLastName" name="lastName" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editFirstName">First Name *</label>
+                        <input type="text" id="editFirstName" name="firstName" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editSex">Sex</label>
+                        <select id="editSex" name="sex" class="form-control">
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editPhoneNumber">Contact Number *</label>
+                        <input type="tel" id="editPhoneNumber" name="phoneNumber" class="form-control" required maxlength="11" pattern="09\d{9}">
+                    </div>
+                    <div class="form-group form-full-width">
+                        <label for="editEmailAddress">Email Address</label>
+                        <input type="email" id="editEmailAddress" name="emailAddress" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="editStatus">Status</label>
+                        <select id="editStatus" name="isActive" class="form-control">
+                            <option value="1">Active</option>
+                            <option value="0">Deactivated</option>
+                        </select>
+                    </div>
+                    <div class="form-actions form-full-width">
+                        <button type="button" class="btn btn-secondary" id="cancelEditPatient">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Update Patient</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Load Patients on page load
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadDentistPatients();
+    setupEventListeners();
+});
+
+async function loadDentistPatients() {
+    try {
+        const response = await fetch('/api/dentist/patients');
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to fetch patients');
+        }
+        
+        const patients = await response.json();
+        const tbody = document.getElementById('patientsTableBody');
+        tbody.innerHTML = '';
+        
+        if (patients.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6">No patients found</td>
+                </tr>`;
+            return;
+        }
+        
+        patients.forEach(patient => {
+            const row = `
+                <tr>
+                    <td>${patient.lastName}</td>
+                    <td>${patient.firstName}</td>
+                    <td>${patient.phoneNumber}</td>
+                    <td>${patient.emailAddress || 'N/A'}</td>
+                    <td class="status ${patient.status === 'ACTIVE' ? 'status-active' : 'status-deactivated'}">
+                        ${patient.status}
+                    </td>
+                    <td class="action-cell">
+                        <span class="menu-dots" data-id="${patient.id}">⋮</span>
+                    </td>
+                </tr>`;
+            tbody.insertAdjacentHTML('beforeend', row);
+        });
+    } catch (error) {
+        console.error('Error loading patients:', error);
+        document.getElementById('patientsTableBody').innerHTML = `
+            <tr>
+                <td colspan="6">Error loading patients: ${error.message}</td>
+            </tr>`;
+    }
+}
+
+function setupEventListeners() {
+    // Search functionality
+    document.getElementById('searchInput').addEventListener('keyup', function() {
+        const searchValue = this.value.toLowerCase();
+        const tableRows = document.querySelectorAll('#patientsTableBody tr');
+        
+        tableRows.forEach(row => {
+            const lastName = row.cells[0].textContent.toLowerCase();
+            const firstName = row.cells[1].textContent.toLowerCase();
+            const phoneNumber = row.cells[2].textContent.toLowerCase();
+            const email = row.cells[3].textContent.toLowerCase();
+            
+            if (lastName.includes(searchValue) || firstName.includes(searchValue) || 
+                phoneNumber.includes(searchValue) || email.includes(searchValue)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+    
+    // Modal close buttons
+    document.getElementById('closePatientDetailsModal')?.addEventListener('click', () => {
+        document.getElementById('patientDetailsModal').style.display = 'none';
+    });
+    
+    document.getElementById('closeEditPatientModal')?.addEventListener('click', () => {
+        document.getElementById('editPatientModal').style.display = 'none';
+    });
+    
+    document.getElementById('cancelEditPatient')?.addEventListener('click', () => {
+        document.getElementById('editPatientModal').style.display = 'none';
+    });
+    
+    // Form submission
+    document.getElementById('editPatientForm')?.addEventListener('submit', updatePatientInfo);
+    
+    // Three dot menu behavior
+    document.addEventListener('click', (e) => {
+        // Close any open dropdown menus when clicking elsewhere
+        if (!e.target.classList.contains('menu-dots')) {
+            const existingMenu = document.querySelector('.dropdown-menu');
+            if (existingMenu) existingMenu.remove();
+        }
+        
+        // Show dropdown menu when clicking on the dots
+        if (e.target.classList.contains('menu-dots')) {
+            showDropdownMenu(e.target);
+        }
+    });
+
+    document.getElementById('editLastName')?.addEventListener('input', function() {
+        if (/\d/.test(this.value)) {
+            this.style.borderColor = '#ff0000';
+        } else {
+            this.style.borderColor = '';
+        }
+    });
+    
+    document.getElementById('editFirstName')?.addEventListener('input', function() {
+        if (/\d/.test(this.value)) {
+            this.style.borderColor = '#ff0000';
+        } else {
+            this.style.borderColor = '';
+        }
+    });
+    
+    document.getElementById('editPhoneNumber')?.addEventListener('input', function() {
+        if (!/^\d*$/.test(this.value)) {
+            this.style.borderColor = '#ff0000';
+        } else {
+            this.style.borderColor = '';
+        }
+    });
+    
+    document.getElementById('editEmailAddress')?.addEventListener('input', function() {
+        if (this.value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.value)) {
+            this.style.borderColor = '#ff0000';
+        } else {
+            this.style.borderColor = '';
+        }
+    });
+}
+
+function showDropdownMenu(target) {
+    // Remove any existing dropdown menu
+    const existingMenu = document.querySelector('.dropdown-menu');
+    if (existingMenu) existingMenu.remove();
+
+    const patientId = target.dataset.id;
+    
+    const menu = document.createElement('div');
+    menu.className = 'dropdown-menu';
+    menu.innerHTML = `
+        <div class="dropdown-item" onclick="showPatientDetails(${patientId})">
+            View
+        </div>
+        <div class="dropdown-item" onclick="showEditPatientForm(${patientId})">
+            Edit 
+        </div>`;
+
+    const rect = target.getBoundingClientRect();
+    menu.style.top = `${rect.bottom}px`;
+    menu.style.left = `${rect.left}px`;
+    
+    document.body.appendChild(menu);
+}
+
+async function showPatientDetails(patientId) {
+    try {
+        const response = await fetch(`/api/patients/${patientId}`);
+        
+        // Handle non-JSON responses before attempting to parse
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            throw new Error(`Server returned non-JSON response: ${await response.text()}`);
+        }
+        
+        if (!response.ok) throw new Error(`Failed to fetch patient details (Status: ${response.status})`);
+        
+        const patient = await response.json();
+        const modalContent = document.getElementById('patientDetailsContent');
+        
+        // Create basic patient info section
+        let detailsHtml = `
+            <div class="patient-details-section">
+                <h4>Personal Information</h4>
+                <p><strong>Name:</strong> ${patient.firstName} ${patient.lastName}</p>
+                <p><strong>Sex:</strong> ${patient.sex || 'Not specified'}</p>
+                <p><strong>Phone:</strong> ${patient.phoneNumber}</p>
+                <p><strong>Email:</strong> ${patient.emailAddress || 'N/A'}</p>
+                <p><strong>Status:</strong> 
+                    <span class="status-badge ${patient.isActive ? 'status-active' : 'status-deactivated'}">
+                        ${patient.isActive ? 'ACTIVE' : 'DEACTIVATED'}
+                    </span>
+                </p>
+            </div>`;
+        
+        // Create insurance section
+        let insuranceHtml = '<div class="patient-details-section">';
+        insuranceHtml += '<h4>Insurance Information</h4>';
+        
+        if (patient.insurances && patient.insurances.length > 0) {
+            patient.insurances.forEach(insurance => {
+                insuranceHtml += `
+                    <div class="insurance-card">
+                        <p><strong>Company:</strong> ${insurance.company}</p>
+                        <p><strong>Policy Number:</strong> ${insurance.policyNumber}</p>
+                        <p><strong>Coverage:</strong> ${insurance.coverage}</p>
+                        <p><strong>Expiration Date:</strong> ${new Date(insurance.expirationDate).toLocaleDateString()}</p>
+                        ${insurance.isPrimary ? '<p><strong>Primary Insurance</strong></p>' : ''}
+                    </div>`;
+            });
+        } else {
+            insuranceHtml += '<p>No insurance information available</p>';
+        }
+        insuranceHtml += '</div>';
+        
+        // Create appointments section
+        let appointmentsHtml = '<div class="patient-details-section">';
+        appointmentsHtml += '<h4>Appointments</h4>';
+        
+        if (patient.appointments && patient.appointments.length > 0) {
+            patient.appointments.forEach(appt => {
+                let statusClass = 'status-booked';
+                if (appt.status === 'COMPLETED') statusClass = 'status-completed';
+                if (appt.status === 'CANCELLED') statusClass = 'status-cancelled';
+                
+                appointmentsHtml += `
+                    <div class="appointment-card">
+                        <p>
+                            <span class="status-badge ${statusClass}">${appt.status}</span>
+                            <strong>${appt.date}</strong>
+                        </p>
+                    </div>`;
+            });
+        } else {
+            appointmentsHtml += '<p>No appointments found</p>';
+        }
+        appointmentsHtml += '</div>';
+        
+        // Create treatments section
+        let treatmentsHtml = '<div class="patient-details-section">';
+        treatmentsHtml += '<h4>Treatment History</h4>';
+        
+        if (patient.treatments && patient.treatments.length > 0) {
+            patient.treatments.forEach(treatment => {
+                treatmentsHtml += `
+                    <div class="treatment-card">
+                        <p><strong>${treatment.transactionDate}</strong> - ${treatment.treatmentType}</p>
+                        <p>${treatment.treatmentDescription}</p>
+                        <p><strong>Price:</strong> ₱${treatment.price.toFixed(2)}</p>
+                        ${treatment.remainingBalance > 0 ? 
+                            `<p><strong>Remaining Balance:</strong> ₱${treatment.remainingBalance.toFixed(2)}</p>` : 
+                            '<p><strong>Fully Paid</strong></p>'}
+                    </div>`;
+            });
+        } else {
+            treatmentsHtml += '<p>No treatment history found</p>';
+        }
+        treatmentsHtml += '</div>';
+        
+        // Create tabbed interface
+        const tabHtml = `
+            <div class="tab-container">
+                <div class="tab-header">
+                    <button class="tab-btn active" data-tab="basic-info">Basic Info</button>
+                    <button class="tab-btn" data-tab="insurance">Insurance</button>
+                    <button class="tab-btn" data-tab="appointments">Appointments</button>
+                    <button class="tab-btn" data-tab="treatments">Treatments</button>
+                </div>
+                <div class="tab-content">
+                    <div id="basic-info" class="tab-panel active">
+                        ${detailsHtml}
+                    </div>
+                    <div id="insurance" class="tab-panel">
+                        ${insuranceHtml}
+                    </div>
+                    <div id="appointments" class="tab-panel">
+                        ${appointmentsHtml}
+                    </div>
+                    <div id="treatments" class="tab-panel">
+                        ${treatmentsHtml}
+                    </div>
+                </div>
+            </div>`;
+        
+        modalContent.innerHTML = tabHtml;
+        
+        // Add tab switching functionality
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        tabButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Remove active class from all buttons and panels
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+                
+                // Add active class to clicked button and corresponding panel
+                this.classList.add('active');
+                document.getElementById(this.dataset.tab).classList.add('active');
+            });
+        });
+        
+        // Close any open dropdown menu
+        const existingMenu = document.querySelector('.dropdown-menu');
+        if (existingMenu) existingMenu.remove();
+        
+        // Show the details modal
+        document.getElementById('patientDetailsModal').style.display = 'block';
+    } catch (error) {
+        console.error('Error showing patient details:', error);
+        alert(`Error: ${error.message}`);
+    }
+}
+
+async function showEditPatientForm(patientId) {
+    try {
+        const response = await fetch(`/api/patients/${patientId}`);
+        
+        // Handle non-JSON responses before attempting to parse
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            throw new Error(`Server returned non-JSON response: ${await response.text()}`);
+        }
+        
+        if (!response.ok) throw new Error(`Failed to fetch patient details (Status: ${response.status})`);
+        
+        const patient = await response.json();
+        
+        // Populate the edit form
+        document.getElementById('editPatientId').value = patientId;
+        document.getElementById('editLastName').value = patient.lastName;
+        document.getElementById('editFirstName').value = patient.firstName;
+        document.getElementById('editSex').value = patient.sex || 'Male';
+        document.getElementById('editPhoneNumber').value = patient.phoneNumber;
+        document.getElementById('editEmailAddress').value = patient.emailAddress || '';
+        document.getElementById('editStatus').value = patient.isActive ? '1' : '0';
+        
+        // Close any open dropdown menu
+        const existingMenu = document.querySelector('.dropdown-menu');
+        if (existingMenu) existingMenu.remove();
+        
+        // Show the edit modal
+        document.getElementById('editPatientModal').style.display = 'block';
+    } catch (error) {
+        console.error('Error showing edit form:', error);
+        alert(`Error: ${error.message}`);
+    }
+}
+
+// Add this function to validate form inputs
+function validatePatientForm(formData) {
+    const errors = [];
+    
+    // Validate Last Name
+    const lastName = formData.get('lastName');
+    if (/\d/.test(lastName)) {
+        errors.push('Last name cannot contain numbers');
+    }
+    if (!lastName.trim()) {
+        errors.push('Last name is required');
+    }
+    
+    // Validate First Name
+    const firstName = formData.get('firstName');
+    if (/\d/.test(firstName)) {
+        errors.push('First name cannot contain numbers');
+    }
+    if (!firstName.trim()) {
+        errors.push('First name is required');
+    }
+    
+    // Validate Phone Number
+    const phoneNumber = formData.get('phoneNumber');
+    if (!/^\d+$/.test(phoneNumber)) {
+        errors.push('Phone number must contain only digits');
+    }
+    if (!phoneNumber.trim()) {
+        errors.push('Phone number is required');
+    }
+    
+    // Validate Email (if provided)
+    const email = formData.get('emailAddress');
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        errors.push('Please enter a valid email address');
+    }
+    
+    return errors;
+
+    document.getElementById('editPhoneNumber')?.addEventListener('input', function() {
+        const value = this.value;
+        let isValid = true;
+        
+        // Check if starts with 09 and has 11 digits
+        if (value && (!/^09\d{0,9}$/.test(value) || value.length > 11)) {
+            isValid = false;
+        }
+        
+        // Visual feedback
+        this.style.borderColor = isValid ? '' : '#ff0000';
+        
+        // Optional: Show helper text
+        const helperId = 'phoneNumberHelper';
+        let helper = document.getElementById(helperId);
+        if (!helper) {
+            helper = document.createElement('div');
+            helper.id = helperId;
+            helper.style.fontSize = '12px';
+            helper.style.marginTop = '5px';
+            this.parentNode.appendChild(helper);
+        }
+        
+        if (!isValid) {
+            helper.textContent = 'Must be 11 digits starting with 09';
+            helper.style.color = '#ff0000';
+        } else {
+            helper.textContent = '';
+        }
+    });
+}
+
+// Add this function to show error modal
+function showErrorModal(messages) {
+    // Remove any existing error modal
+    const existingModal = document.getElementById('errorModal');
+    if (existingModal) existingModal.remove();
+    
+    // Create error modal
+    const modal = document.createElement('div');
+    modal.id = 'errorModal';
+    modal.style.position = 'fixed';
+    modal.style.top = '20px';
+    modal.style.left = '50%';
+    modal.style.transform = 'translateX(-50%)';
+    modal.style.backgroundColor = 'white';
+    modal.style.border = '1px solid #ff0000';
+    modal.style.borderRadius = '5px';
+    modal.style.padding = '15px';
+    modal.style.zIndex = '10000';
+    modal.style.maxWidth = '80%';
+    modal.style.width = '400px';
+    modal.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
+    
+    // Add error messages
+    const title = document.createElement('h4');
+    title.textContent = 'Form Errors';
+    title.style.marginTop = '0';
+    title.style.color = '#d32f2f';
+    modal.appendChild(title);
+    
+    const list = document.createElement('ul');
+    list.style.marginBottom = '0';
+    list.style.paddingLeft = '20px';
+    
+    messages.forEach(message => {
+        const item = document.createElement('li');
+        item.textContent = message;
+        item.style.color = '#d32f2f';
+        list.appendChild(item);
+    });
+    
+    modal.appendChild(list);
+    document.body.appendChild(modal);
+    
+    // Auto-remove after 10 seconds
+    setTimeout(() => {
+        modal.style.opacity = '0';
+        modal.style.transition = 'opacity 1s ease-out';
+        setTimeout(() => modal.remove(), 1000);
+    }, 3000);
+}
+
+async function updatePatientInfo(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    
+    // Validate form inputs
+    const errors = validatePatientForm(formData);
+    if (errors.length > 0) {
+        showErrorModal(errors);
+        return;
+    }
+    
+    try {
+        const patientId = formData.get('patientId');
+        
+        const patientData = {
+            lastName: formData.get('lastName'),
+            firstName: formData.get('firstName'),
+            sex: formData.get('sex'),
+            phoneNumber: formData.get('phoneNumber'),
+            emailAddress: formData.get('emailAddress') || null,
+            isActive: formData.get('isActive') === '1'
+        };
+
+        const response = await fetch(`/api/patients/${patientId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(patientData)
+        });
+
+        if (!response.ok) {
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || `Failed to update patient (Status: ${response.status})`);
+            } else {
+                throw new Error(`Server returned error: ${response.status} ${response.statusText}`);
+            }
+        }
+        
+        document.getElementById('editPatientModal').style.display = 'none';
+        await loadDentistPatients();
+        
+        // Show success message (optional)
+        showSuccessMessage('Patient updated successfully!');
+    } catch (error) {
+        console.error('Error updating patient:', error);
+        showErrorModal([error.message]);
+    }
+
+    const phoneNumber = formData.get('phoneNumber');
+    if (phoneNumber && !/^09\d{9}$/.test(phoneNumber)) {
+        showErrorModal(['Phone number must be exactly 11 digits starting with 09']);
+        return;
+    }
+
+}
+
+// Optional: Add success message function
+function showSuccessMessage(message) {
+    const modal = document.createElement('div');
+    modal.id = 'successModal';
+    modal.style.position = 'fixed';
+    modal.style.top = '20px';
+    modal.style.left = '50%';
+    modal.style.transform = 'translateX(-50%)';
+    modal.style.backgroundColor = 'white';
+    modal.style.border = '1px solid #4CAF50';
+    modal.style.borderRadius = '5px';
+    modal.style.padding = '15px';
+    modal.style.zIndex = '10000';
+    modal.style.maxWidth = '80%';
+    modal.style.width = '400px';
+    modal.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
+    
+    const msg = document.createElement('p');
+    msg.textContent = message;
+    msg.style.color = '#2E7D32';
+    msg.style.margin = '0';
+    msg.style.fontWeight = 'bold';
+    modal.appendChild(msg);
+    
+    document.body.appendChild(modal);
+    
+    setTimeout(() => {
+        modal.style.opacity = '0';
+        modal.style.transition = 'opacity 1s ease-out';
+        setTimeout(() => modal.remove(), 1000);
+    }, 3000);
+}
+
+// Close modals when clicking outside
+window.onclick = function(event) {
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modal => {
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
+}
+    </script>
+</body>
+</html>
