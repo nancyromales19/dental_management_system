@@ -430,8 +430,8 @@
                     <td>{{ appt.APPT_STATUS }}</td>
                     <td class="action-cell">
                         {% if appt.APPT_STATUS != 'CANCELLED' %}
-                            <button class="btn-reschedule"
-                                onclick="openRescheduleModal({{ appt.APPT_ID }}, '{{ appt.PATIENT_NAME }}')">
+                            <button class="btn-reschedule" 
+                                onclick="openRescheduleModal('{{ appt.APPT_ID }}', '{{ appt.PATIENT_NAME }}')">
                                 Reschedule
                             </button>
                         {% else %}
@@ -543,8 +543,25 @@
             const day = String(tomorrow.getDate()).padStart(2, '0');
             document.getElementById("newDate").value = `${year}-${month}-${day}`;
             
-            // Set default time
+            // Set default time to 9:00 AM
             document.getElementById("newTime").value = "09:00";
+            
+            // Initialize time picker
+            const timePicker = document.getElementById("newTime");
+            if (timePicker) {
+                timePicker._flatpickr = flatpickr(timePicker, {
+                    enableTime: true,
+                    noCalendar: true,
+                    dateFormat: "H:i",
+                    minTime: "09:00",
+                    maxTime: "17:00",
+                    minuteIncrement: 30,
+                    time_24hr: true,
+                    onChange: function(selectedDates, dateStr) {
+                        checkRescheduleAvailability();
+                    }
+                });
+            }
         }
         
         function closeModal(modalId) {
@@ -567,43 +584,43 @@
         
         // Reschedule appointment function
         function rescheduleAppointment() {
-        const appointmentId = document.getElementById('appointmentId').value;
-        const newDate = document.getElementById('newDate').value;
-        const newTime = document.getElementById('newTime').value;
-        
-        if (!newDate || !newTime) {
-            alert('Please select both date and time');
-            return;
-        }
-        
-        // Send reschedule request to server
-        fetch('/dentist/reschedule_appointment', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                appointment_id: appointmentId,
-                new_date: newDate,
-                new_time: newTime
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('Appointment rescheduled successfully!');
-                closeModal('rescheduleModal');
-                // Reload the page to reflect changes
-                location.reload();
-            } else {
-                alert('Error: ' + data.message);
+            const appointmentId = document.getElementById('appointmentId').value;
+            const newDate = document.getElementById('newDate').value;
+            const newTime = document.getElementById('newTime').value;
+            
+            if (!newDate || !newTime) {
+                alert('Please select both date and time');
+                return;
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while rescheduling the appointment');
-        });
-    }
+            
+            // Send reschedule request to server
+            fetch('/dentist/reschedule_appointment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    appointment_id: appointmentId,
+                    new_date: newDate,
+                    new_time: newTime
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Appointment rescheduled successfully!');
+                    closeModal('rescheduleModal');
+                    // Reload the page to reflect changes
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while rescheduling the appointment');
+            });
+        }
         
         // Setup pagination
         function setupPagination() {
@@ -684,6 +701,75 @@
         document.getElementById('appointmentDate').addEventListener('change', function() {
             const selectedDate = this.value;
             window.location.href = `/dentist_appointment?date=${selectedDate}`;
+        });
+
+        // Add checkRescheduleAvailability function
+        function checkRescheduleAvailability() {
+            const date = document.getElementById("newDate").value;
+            const time = document.getElementById("newTime").value;
+            const appointmentId = document.getElementById("appointmentId").value;
+            const submitBtn = document.querySelector('.btn-submit');
+            
+            if (date && time) {
+                fetch(`/api/check_appointment_availability?date=${date}&time=${time}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.available) {
+                            submitBtn.disabled = false;
+                            submitBtn.title = '';
+                        } else {
+                            submitBtn.disabled = true;
+                            submitBtn.title = 'This time slot is already booked';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error checking availability:', error);
+                        submitBtn.disabled = true;
+                        submitBtn.title = 'Error checking availability';
+                    });
+            } else {
+                submitBtn.disabled = true;
+                submitBtn.title = 'Please select both date and time';
+            }
+        }
+
+        // Initialize flatpickr for time picker
+        function initializeTimePicker() {
+            const timePicker = document.getElementById("newTime");
+            if (timePicker) {
+                flatpickr(timePicker, {
+                    enableTime: true,
+                    noCalendar: true,
+                    dateFormat: "H:i",
+                    minTime: "09:00",
+                    maxTime: "17:00",
+                    minuteIncrement: 30,
+                    time_24hr: true,
+                    onChange: function(selectedDates, dateStr) {
+                        checkRescheduleAvailability();
+                    }
+                });
+            }
+        }
+
+        // Initialize flatpickr for date picker
+        function initializeDatePicker() {
+            const datePicker = document.getElementById("newDate");
+            if (datePicker) {
+                flatpickr(datePicker, {
+                    minDate: "today",
+                    dateFormat: "Y-m-d",
+                    onChange: function(selectedDates, dateStr) {
+                        checkRescheduleAvailability();
+                    }
+                });
+            }
+        }
+
+        // Call initializations when document is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeDatePicker();
+            initializeTimePicker();
         });
     </script>
 </body>

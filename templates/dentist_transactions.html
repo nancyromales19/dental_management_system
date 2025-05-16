@@ -530,6 +530,43 @@
         </div>
     </div>
 
+    <div id="createTransactionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4>Create New Transaction</h4>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Patient</label>
+                    <select id="patientSelect" class="form-control">
+                        <option value="">Select Patient</option>
+                        <!-- Will be populated via AJAX -->
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Treatments</label>
+                    <div id="treatmentList">
+                        <!-- Will be populated via AJAX -->
+                    </div>
+                    <div id="selectedTreatments" class="selected-items">
+                        <!-- Selected treatments will appear here -->
+                    </div>
+                    <input type="hidden" id="selectedTreatmentIds">
+                </div>
+                
+                <div class="form-group">
+                    <label>Total Amount</label>
+                    <input type="text" id="transactionTotal" class="form-control" readonly>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="createTransactionBtn" class="btn btn-primary">Create Transaction</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // DOM Elements
         const pendingTab = document.getElementById('pendingTab');
@@ -606,59 +643,49 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    // Populate transaction details
+                    const details = data.basic_info;
+                    const treatments = data.treatments;
+                    
                     let html = `
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Patient Name</label>
-                                <p>${data.basic_info.PatientName || 'N/A'}</p>
-                            </div>
-                            <div class="form-group">
-                                <label>Date</label>
-                                <p>${data.basic_info.TRANSC_DATE || 'N/A'}</p>
-                            </div>
-                        </div>
+                        <h4>${details.PatientName}</h4>
+                        <p><strong>Date:</strong> ${new Date(details.TRANSC_DATE).toLocaleString()}</p>
                         
-                        <div class="form-group">
-                            <label>Total Amount</label>
-                            <p>${formatCurrency(data.basic_info.TOTAL_AMOUNT || 0)}</p>
-                        </div>
-                        
-                        <h3>Treatments</h3>
+                        <h5>Treatments</h5>
+                        <ul class="treatment-list">
                     `;
                     
-                    // Add treatments
-                    data.treatments.forEach(treatment => {
-                        html += `
-                            <div class="treatment-item">
-                                <div class="treatment-name">${treatment.TREATMENT_TYPE}</div>
-                                <div class="treatment-price">${formatCurrency(treatment.TREATMENT_PRICE)}</div>
-                            </div>
-                        `;
+                    treatments.forEach(treatment => {
+                        html += `<li>${treatment.TREATMENT_TYPE} - ₱${treatment.TREATMENT_PRICE}</li>`;
                     });
                     
-                    // Add total
+                        html += `
+                        </ul>
+                        <p><strong>Total Amount:</strong> ₱${details.TOTAL_AMOUNT}</p>
+                        `;
+                    
+                    if (details.STATUS === 'COMPLETED') {
                     html += `
-                        <div class="total-amount">
-                            Total: ${formatCurrency(data.basic_info.TOTAL_AMOUNT || 0)}
+                            <div class="payment-info">
+                                <h5>Payment Information</h5>
+                                <p><strong>Payment Mode:</strong> ${details.PAYMENT_MODE}</p>
+                                <p><strong>Completed Date:</strong> ${new Date(details.COMPLETED_DATE).toLocaleString()}</p>
                         </div>
                     `;
                     
-                    // Add payment status
-                    const paymentStatus = data.treatments[0]?.BALANCE > 0 ? 'Pending' : 'Completed';
+                        if (details.PAYMENT_MODE === 'INSURANCE' && data.insurance) {
                     html += `
-                        <div class="form-group">
-                            <label>Status</label>
-                            <p class="${paymentStatus === 'Pending' ? 'status-pending' : 'status-completed'}">${paymentStatus}</p>
+                                <div class="insurance-info">
+                                    <p><strong>Insurance Provider:</strong> ${data.insurance.INSURANCE_COMPANY}</p>
+                                    <p><strong>Policy Number:</strong> ${data.insurance.POLICY_NUM}</p>
                         </div>
                     `;
+                        }
+                    }
                     
-                    transactionDetails.innerHTML = html;
-                    
-                    // Show modal
-                    transactionModal.style.display = 'block';
+                    document.getElementById('transactionDetails').innerHTML = html;
+                    document.getElementById('transactionModal').style.display = 'block';
                 } else {
-                    showAlert(data.message || 'Failed to load transaction details', 'danger');
+                    showAlert('Error loading transaction details', 'danger');
                 }
             } catch (error) {
                 console.error('Error:', error);
@@ -799,7 +826,7 @@
         }
         
         // Submit new transaction
-        async function submitTransaction() {
+        async function submitNewTransaction() {
             if (!selectedPatient) {
                 showAlert('Please select a patient', 'danger');
                 return;
@@ -829,10 +856,8 @@
                 
                 if (data.success) {
                     showAlert('Transaction created successfully', 'success');
-                    newTransactionModal.style.display = 'none';
+                    document.getElementById('newTransactionModal').style.display = 'none';
                     resetTransactionForm();
-                    
-                    // Refresh transactions table
                     loadTransactions();
                 } else {
                     showAlert(data.message || 'Failed to create transaction', 'danger');
@@ -866,42 +891,31 @@
         async function loadTransactions() {
     showSpinner();
     try {
-        const response = await fetch('/api/dentist/transactions');
+                const endpoint = currentTab === 'pending' 
+                    ? '/api/transactions/pending' 
+                    : '/api/transactions/completed';
+                    
+                const response = await fetch(endpoint);
         if (!response.ok) {
-            throw new Error('Failed to fetch transactions');
-        }
-        
-        const data = await response.json();
-        
-        // Process the data to ensure consistent status values
-        allTransactions = data.map(tx => {
-            return {
-                ...tx,
-                // Ensure status is either 'PENDING' or 'COMPLETED'
-                PaymentStatus: tx.PaymentStatus === 'COMPLETED' ? 'COMPLETED' : 'PENDING'
-            };
-        });
-        
-        filteredTransactions = [...allTransactions];
-        renderTransactions();
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const transactions = await response.json();
+                renderTransactions(transactions);
     } catch (error) {
         console.error('Error loading transactions:', error);
-        showAlert('Failed to load transactions', 'danger');
+                showAlert('Failed to load transactions. Please try again.', 'danger');
     } finally {
         hideSpinner();
     }
 }
         
-function renderTransactions() {
-    transactionsTable.innerHTML = '';
-    
-    // Filter based on current tab
-    const filtered = currentTab === 'pending' 
-        ? filteredTransactions.filter(t => t.PaymentStatus === 'PENDING')
-        : filteredTransactions.filter(t => t.PaymentStatus === 'COMPLETED');
+        function renderTransactions(transactions) {
+            const tbody = document.getElementById('transactionsTable');
+            tbody.innerHTML = '';
         
-    if (filtered.length === 0) {
-        transactionsTable.innerHTML = `
+            if (transactions.length === 0) {
+                tbody.innerHTML = `
             <tr>
                 <td colspan="6" style="text-align: center;">No ${currentTab} transactions found</td>
             </tr>
@@ -909,33 +923,26 @@ function renderTransactions() {
         return;
     }
     
-    filtered.forEach(transaction => {
+            transactions.forEach(transaction => {
         const row = document.createElement('tr');
+                const date = new Date(transaction.TRANSC_DATE).toLocaleDateString();
         
         row.innerHTML = `
             <td>${transaction.TRANSACTION_HEADER_ID}</td>
             <td>${transaction.PatientName}</td>
-            <td>${transaction.TRANSC_DATE ? new Date(transaction.TRANSC_DATE).toLocaleDateString() : ''}</td>
-            <td>${formatCurrency(transaction.TOTAL_AMOUNT)}</td>
-            <td class="${transaction.PaymentStatus === 'PENDING' ? 'status-pending' : 'status-completed'}">
-                ${transaction.PaymentStatus === 'PENDING' ? 'Pending' : 'Completed'}
+                    <td>${date}</td>
+                    <td>₱${transaction.TOTAL_AMOUNT.toFixed(2)}</td>
+                    <td class="${transaction.STATUS === 'PENDING' ? 'status-pending' : 'status-completed'}">
+                        ${transaction.STATUS === 'PENDING' ? 'Pending' : 'Completed'}
             </td>
             <td>
                 <button class="view-button view-details" data-id="${transaction.TRANSACTION_HEADER_ID}">View</button>
             </td>
         `;
         
-        transactionsTable.appendChild(row);
-    });
-    
-    document.querySelectorAll('.view-details').forEach(button => {
-        button.addEventListener('click', () => {
-            const transactionId = button.getAttribute('data-id');
-            loadTransactionDetails(transactionId);
-        });
+                tbody.appendChild(row);
     });
 }
-
         
         // Event listeners
         document.addEventListener('DOMContentLoaded', () => {
@@ -945,32 +952,24 @@ function renderTransactions() {
             // Tab switching
             pendingTab.addEventListener('click', () => {
                 currentTab = 'pending';
-                pendingTab.classList.add('active');
-                completedTab.classList.remove('active');
-                renderTransactions();
+                document.getElementById('pendingTab').classList.add('active');
+                document.getElementById('completedTab').classList.remove('active');
+                loadTransactions();
             });
             
             completedTab.addEventListener('click', () => {
                 currentTab = 'completed';
-                pendingTab.classList.remove('active');
-                completedTab.classList.add('active');
-                renderTransactions();
+                document.getElementById('pendingTab').classList.remove('active');
+                document.getElementById('completedTab').classList.add('active');
+                loadTransactions();
             });
             
             // Search functionality
             searchInput.addEventListener('input', (e) => {
-                const term = e.target.value.toLowerCase();
-                
-                if (term === '') {
-                    filteredTransactions = [...allTransactions];
-                } else {
-                    filteredTransactions = allTransactions.filter(t => 
-                        t.PatientName.toLowerCase().includes(term) ||
-                        t.TRANSACTION_HEADER_ID.toString().includes(term)
-                    );
+                const searchTerm = e.target.value.toLowerCase();
+                if (searchTerm.length >= 2) {
+                    // Implement search functionality if needed
                 }
-                
-                renderTransactions();
             });
             
             // Patient search
@@ -979,39 +978,133 @@ function renderTransactions() {
             });
             
             // Close modals when clicking outside
-            window.addEventListener('click', (e) => {
-                if (e.target === transactionModal) {
-                    transactionModal.style.display = 'none';
+            window.addEventListener('click', function(e) {
+                if (e.target.classList.contains('modal')) {
+                    e.target.style.display = 'none';
                 }
-                
-                if (e.target === newTransactionModal) {
-                    newTransactionModal.style.display = 'none';
-                }
-                
-                if (e.target !== patientSearch && e.target !== patientSearchResults) {
-                    patientSearchResults.style.display = 'none';
-                }
-            });
-            
-            // Close buttons
-            closeModal.forEach(button => {
-                button.addEventListener('click', () => {
-                    transactionModal.style.display = 'none';
-                    newTransactionModal.style.display = 'none';
-                });
             });
             
             // New transaction button
             newTransactionBtn.addEventListener('click', () => {
-                newTransactionModal.style.display = 'block';
+                document.getElementById('newTransactionModal').style.display = 'block';
             });
             
             // Submit transaction button
-            submitTransactionBtn.addEventListener('click', submitTransaction);
+            submitTransactionBtn.addEventListener('click', submitNewTransaction);
             
             // Clear transaction button
             clearTransactionBtn.addEventListener('click', resetTransactionForm);
+            
+            // View details button
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('view-details')) {
+                    const transactionId = e.target.getAttribute('data-id');
+                    loadTransactionDetails(transactionId);
+                }
+            });
         });
+
+        $(document).ready(function() {
+    // Load dentist's patients
+    $.get('/api/dentist/patients', function(patients) {
+        const select = $('#patientSelect');
+        patients.forEach(patient => {
+            select.append(`<option value="${patient.id}">${patient.lastName}, ${patient.firstName}</option>`);
+        });
+    });
+
+
+    // Load treatments when patient is selected
+    $('#patientSelect').change(function() {
+        const patientId = $(this).val();
+        if (patientId) {
+            $.get('/api/treatments', function(treatments) {
+                const container = $('#treatmentList');
+                container.empty();
+                
+                treatments.forEach(treatment => {
+                    container.append(`
+                        <div class="treatment-item" data-id="${treatment.TREATMENT_ID}" data-price="${treatment.TREATMENT_PRICE}">
+                            <span>${treatment.TREATMENT_TYPE} (₱${treatment.TREATMENT_PRICE})</span>
+                            <button class="btn btn-sm btn-add">Add</button>
+                        </div>
+                    `);
+                });
+            });
+        }
+    });
+
+    // Add treatment to transaction
+    $(document).on('click', '.btn-add', function() {
+        const item = $(this).closest('.treatment-item');
+        const id = item.data('id');
+        const name = item.find('span').text().split(' (')[0];
+        const price = item.data('price');
+        
+        // Add to selected treatments
+        $('#selectedTreatments').append(`
+            <div class="selected-item" data-id="${id}">
+                ${name} - ₱${price}
+                <button class="btn btn-sm btn-remove">×</button>
+            </div>
+        `);
+        
+        // Update hidden field with comma-separated IDs
+        const currentIds = $('#selectedTreatmentIds').val();
+        $('#selectedTreatmentIds').val(currentIds ? `${currentIds},${id}` : id);
+        
+        // Update total
+        updateTransactionTotal();
+    });
+
+    // Remove treatment
+    $(document).on('click', '.btn-remove', function() {
+        $(this).closest('.selected-item').remove();
+        updateSelectedIds();
+        updateTransactionTotal();
+    });
+
+    function updateSelectedIds() {
+        const ids = [];
+        $('.selected-item').each(function() {
+            ids.push($(this).data('id'));
+        });
+        $('#selectedTreatmentIds').val(ids.join(','));
+    }
+
+    function updateTransactionTotal() {
+        let total = 0;
+        $('.selected-item').each(function() {
+            const priceText = $(this).text().split('₱')[1];
+            total += parseFloat(priceText);
+        });
+        $('#transactionTotal').val('₱' + total.toFixed(2));
+    }
+
+    // Create transaction
+    $('#createTransactionBtn').click(function() {
+        const patientId = $('#patientSelect').val();
+        const treatmentIds = $('#selectedTreatmentIds').val();
+        
+        if (!patientId || !treatmentIds) {
+            alert('Please select a patient and at least one treatment');
+            return;
+        }
+        
+        $.post('/api/transactions/create', {
+            patient_id: patientId,
+            treatment_ids: treatmentIds
+        }, function(response) {
+            if (response.success) {
+                alert('Transaction created successfully');
+                $('#createTransactionModal').hide();
+                location.reload(); // Refresh to show new transaction
+            } else {
+                alert('Error: ' + response.message);
+            }
+        });
+    });
+});
     </script>
 </body>
 </html>

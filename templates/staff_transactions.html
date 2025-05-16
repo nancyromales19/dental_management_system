@@ -455,7 +455,7 @@
     <div id="transactionModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <div class="modal-title">Transaction Details</div>
+                <div class="modal-title">Complete Transaction</div>
                 <span class="close">&times;</span>
             </div>
             
@@ -467,6 +467,7 @@
                 <div class="payment-title">Payment Information</div>
                 <form id="paymentForm">
                     <input type="hidden" id="transactionId">
+                    <input type="hidden" id="amountPaid">
                     
                     <div class="form-row">
                         <div class="form-group">
@@ -479,24 +480,30 @@
                                 <option value="INSURANCE">Insurance</option>
                             </select>
                         </div>
-                        <div class="form-group" id="insuranceGroup" style="display: none;">
+                    </div>
+                    
+                    <div id="debitCardDetails" class="form-row" style="display: none;">
+                        <div class="form-group">
+                            <label for="cardNumber">Card Number</label>
+                            <input type="text" id="cardNumber" maxlength="16" placeholder="Enter card number">
+                        </div>
+                        <div class="form-group">
+                            <label for="expiryDate">Expiry Date</label>
+                            <input type="text" id="expiryDate" placeholder="MM/YY" maxlength="5">
+                        </div>
+                    </div>
+                    
+                    <div id="insuranceDetails" class="form-row" style="display: none;">
+                        <div class="form-group">
                             <label for="insuranceId">Insurance Provider</label>
                             <select id="insuranceId">
                                 <!-- Will be populated dynamically -->
                             </select>
                         </div>
-                    </div>
-                    
-                    <div class="form-row">
                         <div class="form-group">
-                            <label for="amountPaid">Amount Paid</label>
-                            <input type="number" id="amountPaid" step="0.01" min="0" required>
+                            <label for="policyNumber">Policy Number</label>
+                            <input type="text" id="policyNumber" placeholder="Enter policy number">
                         </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="notes">Notes</label>
-                        <textarea id="notes" rows="3"></textarea>
                     </div>
                     
                     <div class="modal-footer">
@@ -507,6 +514,55 @@
             </div>
         </div>
     </div>
+
+    <!-- Add this modal to staff_transactions.html -->
+<div id="completeTransactionModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h4>Complete Transaction</h4>
+            <span class="close">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div id="transactionDetails">
+                <!-- Will be populated via AJAX -->
+            </div>
+            
+            <div class="payment-section">
+                <h5>Payment Information</h5>
+                <div class="form-group">
+                    <label>Payment Mode</label>
+                    <select id="paymentMode" class="form-control">
+                        <option value="CASH">Cash</option>
+                        <option value="CREDIT_CARD">Credit Card</option>
+                        <option value="DEBIT_CARD">Debit Card</option>
+                        <option value="INSURANCE">Insurance</option>
+                    </select>
+                </div>
+                
+                <div id="insuranceSection" class="form-group" style="display:none;">
+                    <label>Insurance Provider</label>
+                    <select id="insuranceProvider" class="form-control">
+                        <option value="">Select Insurance</option>
+                        <!-- Will be populated via AJAX -->
+                    </select>
+                </div>
+                
+                <div id="cardSection" class="form-group" style="display:none;">
+                    <label>Card ID</label>
+                    <input type="text" id="cardId" class="form-control" placeholder="Enter card ID">
+                </div>
+                
+                <div class="form-group">
+                    <label>Amount Paid</label>
+                    <input type="number" id="amountPaid" class="form-control" step="0.01" min="0" readonly>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button id="completeTransactionBtn" class="btn btn-primary">Complete Transaction</button>
+        </div>
+    </div>
+</div>
 
     <script>
         // DOM Elements
@@ -534,6 +590,7 @@
         let filteredTransactions = [];
         let currentPage = 1;
         const itemsPerPage = 10;
+
         
         // Format currency
         function formatCurrency(amount) {
@@ -564,27 +621,17 @@
     async function loadTransactions() {
     showSpinner();
     try {
-        const endpoint = session.get('role') === 'staff' 
-            ? '/api/staff/transactions' 
-            : '/api/dentist/transactions';
+        const endpoint = currentTab === 'pending' 
+            ? '/api/transactions/pending' 
+            : '/api/transactions/completed';
             
         const response = await fetch(endpoint);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-        const data = await response.json();
-        
-        // Normalize status values
-        allTransactions = data.map(tx => ({
-            ...tx,
-            Status: tx.Status === 'COMPLETED' || tx.PaymentStatus === 'COMPLETED' 
-                  ? 'COMPLETED' 
-                  : 'PENDING'
-        }));
-        
-        filteredTransactions = [...allTransactions];
-        renderTransactions();
+        const transactions = await response.json();
+        renderTransactions(transactions);
     } catch (error) {
         console.error('Error loading transactions:', error);
         showAlert('Failed to load transactions. Please try again.', 'danger');
@@ -593,17 +640,12 @@
     }
 }
 
-// In staff_transactions template, update the renderTransactions function:
-function renderTransactions() {
+// Update renderTransactions function
+function renderTransactions(transactions) {
     const tbody = document.querySelector('#transactionsTable tbody');
     tbody.innerHTML = '';
     
-    // Filter based on current tab - use consistent status values
-    const filtered = currentTab === 'pending' 
-        ? filteredTransactions.filter(t => t.Status === 'PENDING')
-        : filteredTransactions.filter(t => t.Status === 'COMPLETED');
-        
-    if (filtered.length === 0) {
+    if (transactions.length === 0) {
         tbody.innerHTML = `
             <tr>
                 <td colspan="7" style="text-align: center;">No ${currentTab} transactions found</td>
@@ -612,24 +654,24 @@ function renderTransactions() {
         return;
     }
     
-    filtered.forEach(transaction => {
+    transactions.forEach(transaction => {
         const row = document.createElement('tr');
+        const date = new Date(transaction.TRANSC_DATE).toLocaleDateString();
         
         row.innerHTML = `
             <td>${transaction.TRANSACTION_HEADER_ID}</td>
             <td>${transaction.PatientName}</td>
             <td>${transaction.DentistName}</td>
-            <td>${transaction.TRANSC_DATE ? new Date(transaction.TRANSC_DATE).toLocaleDateString() : ''}</td>
-            <td>${formatCurrency(transaction.TOTAL_AMOUNT)}</td>
-            <td class="${transaction.Status === 'PENDING' ? 'status-pending' : 'status-completed'}">
-                ${transaction.Status === 'PENDING' ? 'Pending' : 'Completed'}
+            <td>${date}</td>
+            <td>₱${transaction.TOTAL_AMOUNT.toFixed(2)}</td>
+            <td class="${transaction.STATUS === 'PENDING' ? 'status-pending' : 'status-completed'}">
+                ${transaction.STATUS}
             </td>
             <td>
-                <button class="action-button view-details" 
-                        data-id="${transaction.TRANSACTION_HEADER_ID}"
-                        ${transaction.Status === 'COMPLETED' ? 'disabled' : ''}>
-                    ${transaction.Status === 'PENDING' ? 'Continue' : 'View'}
-                </button>
+                ${transaction.STATUS === 'PENDING' 
+                    ? `<button class="action-button continue-transaction" data-id="${transaction.TRANSACTION_HEADER_ID}">Continue</button>`
+                    : `<button class="action-button view-details" data-id="${transaction.TRANSACTION_HEADER_ID}">View</button>`
+                }
             </td>
         `;
         
@@ -642,14 +684,14 @@ document.getElementById('pendingTab').addEventListener('click', () => {
     currentTab = 'pending';
     document.getElementById('pendingTab').classList.add('active');
     document.getElementById('completedTab').classList.remove('active');
-    renderTransactions();
+    loadTransactions();
 });
 
 document.getElementById('completedTab').addEventListener('click', () => {
     currentTab = 'completed';
     document.getElementById('pendingTab').classList.remove('active');
     document.getElementById('completedTab').classList.add('active');
-    renderTransactions();
+    loadTransactions();
 });
 
 // Initial load
@@ -667,73 +709,37 @@ loadTransactions();
                 const data = await response.json();
                 
                 if (data.success) {
-                    // Populate transaction details
+                    const details = data.basic_info;
+                    const treatments = data.treatments;
+                    
                     let html = `
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Patient Name</label>
-                                <p>${data.basic_info.PatientName || 'N/A'}</p>
-                            </div>
-                            <div class="form-group">
-                                <label>Dentist</label>
-                                <p>${data.basic_info.DentistName || 'N/A'}</p>
-                            </div>
-                        </div>
+                        <h4>${details.PatientName}</h4>
+                        <p><strong>Dentist:</strong> ${details.DentistName}</p>
+                        <p><strong>Date:</strong> ${new Date(details.TRANSC_DATE).toLocaleString()}</p>
                         
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Date</label>
-                                <p>${data.basic_info.TRANSC_DATE || 'N/A'}</p>
-                            </div>
-                            <div class="form-group">
-                                <label>Total Amount</label>
-                                <p>${formatCurrency(data.basic_info.TOTAL_AMOUNT || 0)}</p>
-                            </div>
-                        </div>
-                        
-                        <h3>Treatments</h3>
+                        <h5>Treatments</h5>
+                        <ul class="treatment-list">
                     `;
                     
-                    // Add treatments
-                    data.treatments.forEach(treatment => {
-                        html += `
-                            <div class="treatment-item">
-                                <div class="treatment-name">${treatment.TREATMENT_TYPE}</div>
-                                <div class="treatment-price">${formatCurrency(treatment.TREATMENT_PRICE)}</div>
-                            </div>
-                        `;
+                    treatments.forEach(treatment => {
+                        html += `<li>${treatment.TREATMENT_TYPE} - ₱${treatment.TREATMENT_PRICE}</li>`;
                     });
                     
-                    // Add total
                     html += `
-                        <div class="total-amount">
-                            Total: ${formatCurrency(data.basic_info.TOTAL_AMOUNT || 0)}
-                        </div>
+                        </ul>
+                        <p><strong>Total Amount:</strong> ₱${details.TOTAL_AMOUNT}</p>
                     `;
                     
-                    // Add insurance info if available
-                    if (data.insurance) {
-                        html += `
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label>Insurance Provider</label>
-                                    <p>${data.insurance.INSURANCE_COMPANY}</p>
-                                </div>
-                                <div class="form-group">
-                                    <label>Policy Number</label>
-                                    <p>${data.insurance.POLICY_NUM}</p>
-                                </div>
-                            </div>
-                        `;
-                    }
-                    
-                    transactionDetails.innerHTML = html;
-                    document.getElementById('transactionId').value = transactionId;
+                    $('#transactionDetails').html(html);
+                    $('#amountPaid').val(details.TOTAL_AMOUNT);
                     
                     // Show modal
-                    transactionModal.style.display = 'block';
+                    $('#completeTransactionModal').show();
+                    
+                    // Store transaction ID
+                    $('#completeTransactionBtn').data('id', transactionId);
                 } else {
-                    showAlert(data.message || 'Failed to load transaction details', 'danger');
+                    showAlert('Error loading transaction details', 'danger');
                 }
             } catch (error) {
                 console.error('Error:', error);
@@ -744,76 +750,76 @@ loadTransactions();
         }
         
         // Handle payment mode change
-        paymentMode.addEventListener('change', function() {
-            if (this.value === 'INSURANCE') {
-                insuranceGroup.style.display = 'block';
-                // Here you would load insurance providers if needed
-            } else {
-                insuranceGroup.style.display = 'none';
+        $('#paymentMode').change(function() {
+            const mode = $(this).val();
+            $('#insuranceSection').toggle(mode === 'INSURANCE');
+            $('#cardSection').toggle(mode === 'CREDIT_CARD' || mode === 'DEBIT_CARD');
+            
+            if (mode === 'INSURANCE') {
+                // Load insurance providers if not already loaded
+                if ($('#insuranceProvider option').length <= 1) {
+                    $.get('/api/insurance', function(insurances) {
+                        const select = $('#insuranceProvider');
+                        insurances.forEach(insurance => {
+                            select.append(`<option value="${insurance.INSURANCE_ID}">${insurance.INSURANCE_COMPANY}</option>`);
+                        });
+                    });
+                }
             }
         });
         
-        // Handle form submission
-        paymentForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
+        // Update complete transaction handler
+        $('#completeTransactionBtn').click(function() {
+            const transactionId = $(this).data('id');
+            const paymentMode = $('#paymentMode').val();
+            const insuranceId = paymentMode === 'INSURANCE' ? $('#insuranceProvider').val() : null;
+            const amountPaid = parseFloat($('#amountPaid').val());
             
-            const formData = {
-                transaction_id: transactionId.value,
-                payment_mode: paymentMode.value,
-                insurance_id: paymentMode.value === 'INSURANCE' ? insuranceId.value : null,
-                amount_paid: amountPaid.value
-            };
+            if (paymentMode === 'INSURANCE' && !insuranceId) {
+                showAlert('Please select an insurance provider', 'danger');
+                return;
+            }
             
-            showSpinner();
-            try {
-                const response = await fetch('/api/transactions/complete', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(formData)
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    showAlert('Transaction completed successfully', 'success');
-                    transactionModal.style.display = 'none';
-                    // Refresh transactions list
-                    window.location.reload();
-                } else {
-                    showAlert(data.message || 'Failed to complete transaction', 'danger');
+            if (paymentMode === 'CREDIT_CARD' || paymentMode === 'DEBIT_CARD') {
+                const cardId = $('#cardId').val().trim();
+                if (!cardId) {
+                    showAlert('Please enter card ID', 'danger');
+                    return;
                 }
-            } catch (error) {
+            }
+            
+            $.ajax({
+                url: '/api/transactions/complete',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    transaction_id: transactionId,
+                    payment_mode: paymentMode,
+                    insurance_id: insuranceId,
+                    amount_paid: amountPaid
+                }),
+                success: function(response) {
+                    if (response.success) {
+                    showAlert('Transaction completed successfully', 'success');
+                        $('#completeTransactionModal').hide();
+                        loadTransactions();
+                } else {
+                        showAlert(response.message || 'Failed to complete transaction', 'danger');
+                }
+                },
+                error: function(xhr, status, error) {
                 console.error('Error:', error);
                 showAlert('Failed to complete transaction', 'danger');
-            } finally {
-                hideSpinner();
-            }
+                }
+            });
         });
         
         // Event listeners
-        pendingTab.addEventListener('click', function() {
-            currentTab = 'pending';
-            pendingTab.classList.add('active');
-            completedTab.classList.remove('active');
-            // Here you would filter transactions by status
-        });
-        
-        completedTab.addEventListener('click', function() {
-            currentTab = 'completed';
-            pendingTab.classList.remove('active');
-            completedTab.classList.add('active');
-            // Here you would filter transactions by status
-        });
-        
-        searchInput.addEventListener('input', function() {
-            // Here you would implement search functionality
-        });
-        
-        // View details button click
         document.addEventListener('click', function(e) {
-            if (e.target.classList.contains('view-details')) {
+            if (e.target.classList.contains('continue-transaction')) {
+                const transactionId = e.target.getAttribute('data-id');
+                loadTransactionDetails(transactionId);
+            } else if (e.target.classList.contains('view-details')) {
                 const transactionId = e.target.getAttribute('data-id');
                 loadTransactionDetails(transactionId);
             }
@@ -834,6 +840,99 @@ loadTransactions();
                 transactionModal.style.display = 'none';
             }
         });
+
+        $(document).ready(function() {
+    // Show payment modal when "Continue" is clicked
+    $(document).on('click', '.continue-btn', function() {
+        const transactionId = $(this).data('id');
+        
+        // Load transaction details
+        $.get('/api/transactions/' + transactionId, function(response) {
+            if (response.success) {
+                const details = response.basic_info;
+                const treatments = response.treatments;
+                const insurance = response.insurance;
+                
+                // Populate transaction details
+                let html = `
+                    <h4>${details.PatientName}</h4>
+                    <p><strong>Dentist:</strong> ${details.DentistName}</p>
+                    <p><strong>Date:</strong> ${new Date(details.TRANSC_DATE).toLocaleString()}</p>
+                    
+                    <h5>Treatments</h5>
+                    <ul class="treatment-list">
+                `;
+                
+                treatments.forEach(treatment => {
+                    html += `<li>${treatment.TREATMENT_TYPE} - ₱${treatment.TREATMENT_PRICE}</li>`;
+                });
+                
+                html += `
+                    </ul>
+                    <p><strong>Total Amount:</strong> ₱${details.TOTAL_AMOUNT}</p>
+                `;
+                
+                $('#transactionDetails').html(html);
+                $('#amountPaid').val(details.TOTAL_AMOUNT);
+                
+                // Show modal
+                $('#completeTransactionModal').show();
+                
+                // Store transaction ID
+                $('#completeTransactionBtn').data('id', transactionId);
+            } else {
+                alert('Error loading transaction details');
+            }
+        });
+    });
+    
+    // Toggle insurance section
+    $('#paymentMode').change(function() {
+        if ($(this).val() === 'INSURANCE') {
+            $('#insuranceSection').show();
+            
+            // Load insurance providers if not already loaded
+            if ($('#insuranceProvider option').length <= 1) {
+                $.get('/api/insurance', function(insurances) {
+                    const select = $('#insuranceProvider');
+                    insurances.forEach(insurance => {
+                        select.append(`<option value="${insurance.INSURANCE_ID}">${insurance.INSURANCE_COMPANY}</option>`);
+                    });
+                });
+            }
+        } else {
+            $('#insuranceSection').hide();
+        }
+    });
+    
+    // Complete transaction
+    $('#completeTransactionBtn').click(function() {
+        const transactionId = $(this).data('id');
+        const paymentMode = $('#paymentMode').val();
+        const insuranceId = paymentMode === 'INSURANCE' ? $('#insuranceProvider').val() : null;
+        const amountPaid = parseFloat($('#amountPaid').val());
+        
+        if (!amountPaid || amountPaid <= 0) {
+            alert('Please enter a valid amount');
+            return;
+        }
+        
+        $.post('/api/transactions/complete', {
+            transaction_id: transactionId,
+            payment_mode: paymentMode,
+            insurance_id: insuranceId,
+            amount_paid: amountPaid
+        }, function(response) {
+            if (response.success) {
+                alert('Transaction completed successfully');
+                $('#completeTransactionModal').hide();
+                location.reload(); // Refresh to show updated status
+            } else {
+                alert('Error: ' + response.message);
+            }
+        });
+    });
+});
     </script>
 </body>
 </html>

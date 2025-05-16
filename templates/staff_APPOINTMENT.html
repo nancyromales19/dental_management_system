@@ -134,9 +134,37 @@
       font-weight: bold;
     }
 
-    .status-cancelled {
-      color: red;
+    .status-ongoing {
+      color: #ff9800;
       font-weight: bold;
+    }
+
+    .status-cancelled {
+      color: #dc0000;
+      font-weight: bold;
+    }
+
+    /* Add status badges */
+    .status-badge {
+      padding: 5px 10px;
+      border-radius: 15px;
+      font-size: 0.9em;
+      font-weight: bold;
+    }
+
+    .status-badge.booked {
+      background-color: #e3f2fd;
+      color: #1e88e5;
+    }
+
+    .status-badge.ongoing {
+      background-color: #fff3e0;
+      color: #ff9800;
+    }
+
+    .status-badge.cancelled {
+      background-color: #ffebee;
+      color: #dc0000;
     }
 
     .pagination {
@@ -471,6 +499,29 @@
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
+
+    .availability-message {
+      margin-top: 10px;
+      padding: 8px;
+      border-radius: 4px;
+    }
+
+    .availability-message.error {
+      background-color: #ffebee;
+      color: #c62828;
+      border: 1px solid #ffcdd2;
+    }
+
+    .availability-message.success {
+      background-color: #e8f5e9;
+      color: #2e7d32;
+      border: 1px solid #c8e6c9;
+    }
+
+    .time-slot-disabled {
+      color: #999;
+      background-color: #f5f5f5;
+    }
   </style>
 </head>
 <body>
@@ -525,13 +576,15 @@
             <td>{{ appointment.APPT_DATE }}</td>
             <td>{{ appointment.DENTIST_NAME }}</td>
             <td>
-              <span class="status-{{ appointment.APPT_STATUS.lower() }}">
+              <span class="status-badge {{ appointment.APPT_STATUS.lower() }}">
                 {{ appointment.APPT_STATUS }}
               </span>
             </td>
             <td>
               {% if appointment.APPT_STATUS != 'CANCELLED' %}
-              <button class="action-btn" onclick="openCancelModal({{ appointment.APPT_ID }})">Cancel</button>
+              <button class="action-btn" onclick="openCancelModal('{{ appointment.APPT_ID }}')">
+                <i class="fas fa-times"></i> Cancel
+              </button>
               {% else %}
               <em>Cancelled: {{ appointment.CANCEL_RES }}</em>
               {% endif %}
@@ -586,19 +639,21 @@
               <div class="form-group">
                 <label for="appointmentDate">Appointment Date:</label>
                 <div class="input-with-icon">
-                  <input type="text" id="appointmentDate" class="form-control" placeholder="Select date...">
+                  <input type="date" id="appointmentDate" class="form-control" placeholder="Select date...">
                   <i class="fas fa-calendar"></i>
                 </div>
               </div>
               <div class="form-group">
                 <label for="appointmentTime">Appointment Time:</label>
                 <div class="input-with-icon">
-                  <input type="text" id="appointmentTime" class="form-control" placeholder="Select time...">
+                  <select id="appointmentTime" class="form-control">
+                    <option value="">Select time...</option>
+                  </select>
                   <i class="fas fa-clock"></i>
                 </div>
               </div>
             </div>
-            <div id="timeAvailabilityMessage"></div>
+            <div id="timeAvailabilityMessage" class="availability-message"></div>
           </div>
 
           <!-- Step 3: Dentist Selection -->
@@ -681,7 +736,7 @@
     
     let currentStep = 1;
     
-    // Initialize date and time pickers
+    // Initialize date picker only
     flatpickr(appointmentDate, {
       minDate: "today",
       dateFormat: "Y-m-d",
@@ -689,16 +744,108 @@
         checkTimeAvailability();
       }
     });
-    
-    flatpickr(appointmentTime, {
-      enableTime: true,
-      noCalendar: true,
-      dateFormat: "H:i",
-      minTime: "09:00",
-      maxTime: "17:00",
-      onChange: function(selectedDates, dateStr) {
-        checkTimeAvailability();
+
+    // Function to generate time slots
+    function generateTimeSlots() {
+      const timeSelect = document.getElementById('appointmentTime');
+      const selectedDate = document.getElementById('appointmentDate').value;
+      const today = new Date();
+      const selectedDateObj = new Date(selectedDate);
+      
+      timeSelect.innerHTML = '<option value="">Select time...</option>';
+      
+      // Generate time slots from 7:01 AM to 8:00 PM
+      for (let hour = 7; hour <= 20; hour++) {
+        // For 7 AM, start from minute 1
+        const startMinute = hour === 7 ? 1 : 0;
+        // For 8 PM (20), only include minute 0
+        const endMinute = hour === 20 ? 0 : 59;
+        
+        for (let minute = startMinute; minute <= endMinute; minute++) {
+          // Format time in 24-hour format for value
+          const time24 = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+          
+          // Skip times between 20:00 (8 PM) and 07:01 (7:01 AM)
+          if ((hour === 20 && minute > 0) || hour < 7 || (hour === 7 && minute === 0)) {
+            continue;
+          }
+          
+          // Create date object for the selected date and time
+          const appointmentDateTime = new Date(selectedDate);
+          appointmentDateTime.setHours(hour, minute);
+          
+          // Skip if the time is in the past for today
+          if (selectedDateObj.toDateString() === today.toDateString() && appointmentDateTime < today) {
+            continue;
+          }
+          
+          // Create date object for consistent display format
+          const timeObj = new Date(2000, 0, 1, hour, minute);
+          const timeDisplay = timeObj.toLocaleTimeString('en-US', { 
+            hour: 'numeric', 
+            minute: '2-digit', 
+            hour12: true 
+          });
+          
+          const option = document.createElement('option');
+          option.value = time24;  // Store 24-hour format as value
+          option.textContent = timeDisplay;  // Display 12-hour format
+          timeSelect.appendChild(option);
+        }
       }
+    }
+
+    // Function to check time availability
+    function checkTimeAvailability() {
+      const date = appointmentDate.value;
+      const time = appointmentTime.value;
+      const timeAvailabilityMessage = document.getElementById('timeAvailabilityMessage');
+      
+      if (date && time) {
+        timeAvailabilityMessage.innerHTML = '<div class="spinner"></div> Checking availability...';
+        timeAvailabilityMessage.style.display = 'block';
+        
+        console.log('Checking availability for:', { date, time });  // Debug log
+        
+        fetch(`/api/check_appointment_availability?date=${date}&time=${time}`)
+          .then(response => response.json())
+          .then(data => {
+            console.log('Availability response:', data);  // Debug log
+            if (data.available) {
+              timeAvailabilityMessage.className = 'availability-message success';
+              timeAvailabilityMessage.innerHTML = '✓ Time slot is available';
+              nextBtn.disabled = false;
+            } else {
+              timeAvailabilityMessage.className = 'availability-message error';
+              timeAvailabilityMessage.innerHTML = '✗ ' + (data.message || 'This time slot is already booked');
+              nextBtn.disabled = true;
+            }
+          })
+          .catch(error => {
+            console.error('Error checking availability:', error);
+            timeAvailabilityMessage.className = 'availability-message error';
+            timeAvailabilityMessage.innerHTML = '⚠ Unable to check availability';
+            nextBtn.disabled = true;
+          });
+      } else {
+        timeAvailabilityMessage.style.display = 'none';
+        nextBtn.disabled = false;
+      }
+    }
+
+    // Event listener for time selection
+    appointmentTime.addEventListener('change', function() {
+      checkTimeAvailability();
+    });
+
+    // Event listener for date selection
+    document.getElementById('appointmentDate').addEventListener('change', function() {
+      generateTimeSlots();
+    });
+
+    // Initialize time slots when the page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      generateTimeSlots();
     });
 
     // Event Listeners
@@ -960,32 +1107,6 @@
       patientSearch.value = patientData.name;
     }
 
-    function checkTimeAvailability() {
-      const date = appointmentDate.value;
-      const time = appointmentTime.value;
-      
-      if (date && time) {
-        timeAvailabilityMessage.innerHTML = '<div class="spinner"></div> Checking availability...';
-        timeAvailabilityMessage.style.display = 'block';
-        
-        fetch(`/api/check_appointment_availability?date=${date}&time=${time}`)
-          .then(response => response.json())
-          .then(data => {
-            if (data.available) {
-              timeAvailabilityMessage.innerHTML = '<div style="color: green;">✓ Time slot is available</div>';
-            } else {
-              timeAvailabilityMessage.innerHTML = '<div style="color: red;">✗ This time slot is already booked</div>';
-            }
-          })
-          .catch(error => {
-            console.error('Error checking availability:', error);
-            timeAvailabilityMessage.innerHTML = '<div style="color: orange;">Unable to check availability</div>';
-          });
-      } else {
-        timeAvailabilityMessage.style.display = 'none';
-      }
-    }
-
     function loadAvailableDentists() {
       const date = appointmentDate.value;
       const time = appointmentTime.value;
@@ -1035,13 +1156,13 @@
               });
             } else {
               noDentistsMessage.style.display = 'block';
+              nextBtn.disabled = true;
             }
           })
           .catch(error => {
             console.error('Error loading dentists:', error);
-            loadingDentists.style.display = 'none';
-            noDentistsMessage.textContent = 'Error loading dentists. Please try again.';
             noDentistsMessage.style.display = 'block';
+            nextBtn.disabled = true;
           });
       }
     }

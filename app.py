@@ -18,7 +18,7 @@ def get_db_connection():
     try:
         conn = pyodbc.connect(
             'DRIVER={ODBC Driver 11 for SQL Server};'
-            'SERVER=DESKTOP-N2FF52A\\SQLEXPRESS;'
+            'SERVER=DESKTOP-8DN8MKL\\SQLEXPRESS;'
             'DATABASE=DENTAL_MANAGEMENT;'
             'Trusted_Connection=yes;'
         )
@@ -1231,15 +1231,23 @@ def update_patient(patient_id):
                @patientId=?, @lastName=?, @firstName=?, @sex=?, @phoneNumber=?, 
                @emailAddress=?, @modifiedBy=?""",
             patient_id, data['lastName'], data['firstName'], data.get('sex', 'Not specified'), 
-            data['phoneNumber'], data.get('emailAddress')
+            data['phoneNumber'], data.get('emailAddress'), session.get('user_name')
         )
         
         conn.commit()
         conn.close()
         
-        return jsonify({'success': True}), 200
+        return jsonify({
+            'success': True,
+            'message': 'User updated successfully'
+        })
+            
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        print(f"Error updating patient: {e}")
+        return jsonify({
+            'success': False,
+            'message': f'Error updating patient: {str(e)}'
+        }), 500
 
 # API endpoint for insurance management
 @app.route('/api/patients/<int:patient_id>/insurance', methods=['POST'])
@@ -1326,13 +1334,38 @@ def update_insurance(insurance_id):
 
 # Appointments page route
 @app.route('/staff_APPOINTMENT')
-
 def staff_APPOINTMENT():
     conn = get_db_connection()
     cursor = conn.cursor()
     
     try:
-        cursor.execute("EXEC sp_GetAllAppointments")
+        # Modified query to show all appointments except completed ones
+        cursor.execute("""
+            SELECT 
+                a.APPT_ID,
+                p.PAT_FNAME + ' ' + p.PAT_LNAME as PATIENT_NAME,
+                d.USER_FNAME + ' ' + d.USER_LNAME as DENTIST_NAME,
+                FORMAT(CAST(a.APPT_DATE as time), 'hh:mm tt') as APPT_TIME,
+                FORMAT(CAST(a.APPT_DATE as date), 'MMM dd, yyyy') as APPT_DATE,
+                CASE 
+                    WHEN a.APPT_STATUS = 'BOOKED' AND CAST(a.APPT_DATE AS DATE) < CAST(GETDATE() AS DATE) THEN 'ONGOING'
+                    ELSE a.APPT_STATUS 
+                END as APPT_STATUS,
+                a.CANCEL_RES
+            FROM APPOINTMENT a
+            JOIN PATIENT p ON a.PATIENT_ID = p.PATIENT_ID
+            JOIN DENTIST dt ON a.DENTIST_ID = dt.DENTIST_ID
+            JOIN USER_PROFILE d ON dt.LOGIN_ID = d.LOGIN_ID
+            WHERE a.APPT_STATUS != 'COMPLETED'
+            ORDER BY 
+                CASE 
+                    WHEN a.APPT_STATUS = 'BOOKED' AND CAST(a.APPT_DATE AS DATE) < CAST(GETDATE() AS DATE) THEN 1
+                    WHEN a.APPT_STATUS = 'BOOKED' THEN 2
+                    ELSE 3
+                END,
+                a.APPT_DATE DESC
+        """)
+        
         appointments = []
         for row in cursor.fetchall():
             appointments.append({
@@ -1348,8 +1381,8 @@ def staff_APPOINTMENT():
         return render_template('staff_APPOINTMENT.html', appointments=appointments)
     
     except Exception as e:
-        flash(f"Error loading appointments: {str(e)}", "error")
-        return render_template('staff_APPOINTMENT.html', appointments=[])
+        print(f"Error fetching appointments: {str(e)}")
+        return render_template('staff_APPOINTMENT.html', appointments=[], error="Unable to fetch appointments")
     
     finally:
         cursor.close()
@@ -1390,10 +1423,11 @@ def search_patients():
 
 # API endpoint to check appointment availability
 @app.route('/api/check_appointment_availability')
-
 def check_appointment_availability():
     date = request.args.get('date', '')
     time = request.args.get('time', '')
+    
+    print(f"Checking availability for date: {date}, time: {time}")  # Debug log
     
     if not date or not time:
         return jsonify({'available': False, 'message': 'Date and time are required'})
@@ -1402,20 +1436,50 @@ def check_appointment_availability():
     cursor = conn.cursor()
     
     try:
-        cursor.execute("EXEC sp_CheckAppointmentAvailability @AppointmentDate=?, @AppointmentTime=?", 
-                      date, time)
+        # Convert time to SQL time format and combine with date
+        try:
+            time_obj = datetime.strptime(time, "%H:%M")
+            date_obj = datetime.strptime(date, "%Y-%m-%d")
+            appointment_datetime = datetime.combine(date_obj.date(), time_obj.time())
+            
+            # Check if appointment is in the past
+            current_datetime = datetime.now()
+            if appointment_datetime < current_datetime:
+                return jsonify({
+                    'available': False,
+                    'message': 'Cannot book appointments in the past'
+                })
+                
+            print(f"Checking datetime: {appointment_datetime}")  # Debug log
+        except ValueError as e:
+            print(f"DateTime format error: {str(e)}")  # Debug log
+            return jsonify({'available': False, 'message': 'Invalid date/time format'})
+        
+        # Check if there are any existing appointments at the same time
+        cursor.execute("""
+            SELECT COUNT(*) as count
+            FROM APPOINTMENT
+            WHERE CAST(APPT_DATE AS DATE) = CAST(? AS DATE)
+            AND CAST(APPT_TIME AS TIME) = CAST(? AS TIME)
+            AND APPT_STATUS = 'BOOKED'
+        """, (appointment_datetime, appointment_datetime))
+        
         result = cursor.fetchone()
+        count = result[0] if result else 0
+        print(f"Found {count} existing appointments")  # Debug log
         
-        available = result.ExistingAppointments == 0
+        available = count == 0
         
-        return jsonify({
+        response = {
             'available': available,
-            'message': result.Message
-        })
+            'message': 'Time slot is available' if available else 'Time slot is already booked'
+        }
+        print(f"Sending response: {response}")  # Debug log
+        return jsonify(response)
     
     except Exception as e:
         print(f"Error checking appointment availability: {str(e)}")
-        return jsonify({'available': False, 'message': 'Error checking availability'})
+        return jsonify({'available': False, 'message': f'Error checking availability: {str(e)}'})
     
     finally:
         cursor.close()
@@ -1455,7 +1519,7 @@ def get_available_dentists():
         cursor.close()
         conn.close()
 
-# Create appointment endpoint
+# Create appointment
 @app.route('/staff/create_appointment', methods=['POST'])
 def create_appointment():
     data = request.json
@@ -1472,42 +1536,65 @@ def create_appointment():
             'message': 'All fields are required'
         })
     
-    # Combine date and time
+    # Convert time to SQL datetime format
     try:
-        appointment_datetime = f"{appointment_date} {appointment_time}"
-        # Convert to datetime object to validate format
-        datetime.strptime(appointment_datetime, "%Y-%m-%d %H:%M")
+        time_obj = datetime.strptime(appointment_time, "%H:%M")
+        date_obj = datetime.strptime(appointment_date, "%Y-%m-%d")
+        appointment_datetime = datetime.combine(date_obj.date(), time_obj.time())
+        
+        # Check if appointment is in the past
+        current_datetime = datetime.now()
+        if appointment_datetime < current_datetime:
+            return jsonify({
+                'success': False,
+                'message': 'Cannot book appointments in the past'
+            })
+            
     except ValueError:
         return jsonify({
             'success': False,
-            'message': 'Invalid date or time format'
+            'message': 'Invalid date/time format'
         })
     
     conn = get_db_connection()
     cursor = conn.cursor()
     
     try:
+        # Check for existing appointments at the same time
+        cursor.execute("""
+            SELECT COUNT(*) as ExistingAppointments
+            FROM APPOINTMENT
+            WHERE CAST(APPT_DATE AS DATE) = CAST(? AS DATE)
+            AND CAST(APPT_DATE AS TIME) = CAST(? AS TIME)
+            AND APPT_STATUS != 'CANCELLED'
+            AND (PATIENT_ID = ? OR DENTIST_ID = ?)
+        """, (appointment_datetime, appointment_datetime, patient_id, dentist_id))
+        
+        result = cursor.fetchone()
+        if result.ExistingAppointments > 0:
+            return jsonify({
+                'success': False,
+                'message': 'This time slot is already booked for the patient or dentist'
+            })
+        
         # Get the current user's name for modified_by field
         modified_by = f"{session.get('user_fname', '')} {session.get('user_lname', '')}"
         
-        cursor.execute("EXEC sp_CreateAppointment @PatientID=?, @DentistID=?, @AppointmentDate=?, @ModifiedBy=?",
-                       patient_id, dentist_id, appointment_datetime, modified_by)
+        # Create the appointment
+        cursor.execute("""
+            INSERT INTO APPOINTMENT (PATIENT_ID, DENTIST_ID, APPT_DATE, APPT_STATUS, MODIFIED_BY)
+            OUTPUT INSERTED.APPT_ID
+            VALUES (?, ?, ?, 'BOOKED', ?)
+        """, (patient_id, dentist_id, appointment_datetime, modified_by))
         
-        # Try to fetch result, but handle case where nothing is returned
-        try:
-            result = cursor.fetchone()
-            success = result and hasattr(result, 'APPT_ID') and result.APPT_ID > 0
-            message = result.Message if result and hasattr(result, 'Message') else "Appointment created successfully"
-            appt_id = result.APPT_ID if result and hasattr(result, 'APPT_ID') else 0
-        except:
-            # If fetchone fails, assume success (since the SP executed without error)
-            success = True
-            message = "Appointment created successfully"
-            appt_id = 0
+        result = cursor.fetchone()
+        appt_id = result[0] if result else 0
+        
+        conn.commit()
         
         return jsonify({
-            'success': success,
-            'message': message,
+            'success': True,
+            'message': 'Appointment created successfully',
             'appointment_id': appt_id
         })
     
@@ -1519,7 +1606,6 @@ def create_appointment():
         })
     
     finally:
-        conn.commit()
         cursor.close()
         conn.close()
 
@@ -1653,51 +1739,77 @@ def reschedule_appointment():
             'message': 'All fields are required'
         })
     
-    # Validate date format
+    # Convert time to SQL datetime format
     try:
-        # Validate both date and time separately
-        datetime.strptime(new_date, "%Y-%m-%d")
-        datetime.strptime(new_time, "%H:%M")
+        time_obj = datetime.strptime(new_time, "%H:%M")
+        date_obj = datetime.strptime(new_date, "%Y-%m-%d")
+        appointment_datetime = datetime.combine(date_obj.date(), time_obj.time())
     except ValueError:
         return jsonify({
             'success': False,
-            'message': 'Invalid date or time format'
+            'message': 'Invalid date/time format'
         })
     
     conn = get_db_connection()
     cursor = conn.cursor()
     
     try:
-        # Get the current user's ID and name
-        dentist_id = session.get('login_id')
-        modified_by = f"{session.get('user_fname', '')} {session.get('user_lname', '')}"
+        # Get the current appointment details
+        cursor.execute("""
+            SELECT PATIENT_ID, DENTIST_ID, APPT_STATUS
+            FROM APPOINTMENT
+            WHERE APPT_ID = ?
+        """, (appointment_id,))
         
-        # First check if the appointment belongs to this dentist
-        cursor.execute("SELECT DENTIST_ID FROM APPOINTMENT WHERE APPT_ID=?", appointment_id)
-        row = cursor.fetchone()
-        
-        if not row:
+        appt = cursor.fetchone()
+        if not appt:
             return jsonify({
                 'success': False,
                 'message': 'Appointment not found'
             })
         
-        # Now reschedule the appointment with separate date and time parameters
-        cursor.execute("EXEC sp_RescheduleAppointment @AppointmentID=?, @NewDate=?, @NewTime=?, @ModifiedBy=?",
-                      appointment_id, new_date, new_time, modified_by)
-        
-        result = cursor.fetchone()
-        
-        if hasattr(result, 'Success') and result.Success == 1:
-            return jsonify({
-                'success': True,
-                'message': result.Message
-            })
-        else:
+        if appt.APPT_STATUS == 'COMPLETED':
             return jsonify({
                 'success': False,
-                'message': result.Message if hasattr(result, 'Message') else 'Error rescheduling appointment'
+                'message': 'Cannot reschedule a completed appointment'
             })
+        
+        # Check for existing appointments at the new time
+        cursor.execute("""
+            SELECT COUNT(*) as ExistingAppointments
+            FROM APPOINTMENT
+            WHERE CAST(APPT_DATE AS DATE) = CAST(? AS DATE)
+            AND CAST(APPT_TIME AS TIME) = CAST(? AS TIME)
+            AND APPT_STATUS != 'CANCELLED'
+            AND APPT_ID != ?
+            AND (PATIENT_ID = ? OR DENTIST_ID = ?)
+        """, (appointment_datetime, appointment_datetime, appointment_id, appt.PATIENT_ID, appt.DENTIST_ID))
+        
+        result = cursor.fetchone()
+        if result.ExistingAppointments > 0:
+            return jsonify({
+                'success': False,
+                'message': 'This time slot is already booked'
+            })
+        
+        # Get the current user's name for modified_by field
+        modified_by = f"{session.get('user_fname', '')} {session.get('user_lname', '')}"
+        
+        # Update the appointment
+        cursor.execute("""
+            UPDATE APPOINTMENT
+            SET APPT_DATE = ?,
+                MODIFIED_BY = ?,
+                MODIFIED_DATE = GETDATE()
+            WHERE APPT_ID = ?
+        """, (appointment_datetime, modified_by, appointment_id))
+        
+        conn.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Appointment rescheduled successfully'
+        })
     
     except Exception as e:
         print(f"Error rescheduling appointment: {str(e)}")
@@ -1707,7 +1819,6 @@ def reschedule_appointment():
         })
     
     finally:
-        conn.commit()
         cursor.close()
         conn.close()
 
@@ -1731,26 +1842,9 @@ def get_dentist_patients():
             
         dentist_id = dentist_result[0]
         
-        # Get all patients associated with appointments for this dentist
-        cursor.execute("""
-            SELECT DISTINCT
-                p.PATIENT_ID as id,
-                p.PATIENT_LNAME as lastName,
-                p.PATIENT_FNAME as firstName,
-                p.PATIENT_PHO_NUM as phoneNumber,
-                p.PATIENT_EMAIL_ADD as emailAddress,
-                CASE WHEN p.ISACTIVE = 1 THEN 'ACTIVE' ELSE 'DEACTIVATED' END as status
-            FROM 
-                PATIENT p
-            INNER JOIN
-                APPOINTMENT a ON p.PATIENT_ID = a.PATIENT_ID
-            WHERE 
-                a.DENTIST_ID = ?
-            ORDER BY 
-                p.PATIENT_LNAME, p.PATIENT_FNAME
-        """, (dentist_id,))
+        # Get all patients assigned to this dentist
+        cursor.execute("EXEC SP_GET_DENTIST_PATIENTS ?", (dentist_id,))
         
-        # Fetch all rows and convert to list of dictionaries
         patients = []
         columns = [column[0] for column in cursor.description]
         for row in cursor.fetchall():
@@ -1823,174 +1917,345 @@ def dentist_transactions():
                                 error="Unable to fetch transaction data")
     else:
         return redirect(url_for('login'))
+    
+# Staff endpoints
+@app.route('/api/transactions/pending', methods=['GET'])
+def get_pending_transactions():
+    if 'login_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Get pending transactions based on role
+        if session.get('role') == 'staff':
+            cursor.execute("""
+                SELECT 
+                    TH.TRANSACTION_HEADER_ID,
+                    P.PAT_FNAME + ' ' + P.PAT_LNAME AS PatientName,
+                    D.USER_FNAME + ' ' + D.USER_LNAME AS DentistName,
+                    TH.TRANSC_DATE,
+                    TH.TOTAL_AMOUNT,
+                    TH.STATUS
+                FROM TRANSACTION_HEADER TH
+                JOIN APPOINTMENT A ON TH.APPT_ID = A.APPT_ID
+                JOIN PATIENT P ON A.PATIENT_ID = P.PATIENT_ID
+                JOIN DENTIST DT ON A.DENTIST_ID = DT.DENTIST_ID
+                JOIN USER_PROFILE D ON DT.LOGIN_ID = D.LOGIN_ID
+                WHERE TH.STATUS = 'PENDING'
+                ORDER BY TH.TRANSC_DATE DESC
+            """)
+        else:  # dentist
+            cursor.execute("""
+                SELECT 
+                    TH.TRANSACTION_HEADER_ID,
+                    P.PAT_FNAME + ' ' + P.PAT_LNAME AS PatientName,
+                    TH.TRANSC_DATE,
+                    TH.TOTAL_AMOUNT,
+                    TH.STATUS
+                FROM TRANSACTION_HEADER TH
+                JOIN APPOINTMENT A ON TH.APPT_ID = A.APPT_ID
+                JOIN PATIENT P ON A.PATIENT_ID = P.PATIENT_ID
+                JOIN DENTIST D ON A.DENTIST_ID = D.DENTIST_ID
+                WHERE D.LOGIN_ID = ? AND TH.STATUS = 'PENDING'
+                ORDER BY TH.TRANSC_DATE DESC
+            """, (session['login_id'],))
+        
+        transactions = []
+        columns = [column[0] for column in cursor.description]
+        for row in cursor.fetchall():
+            transactions.append(dict(zip(columns, row)))
+            
+        return jsonify(transactions)
+        
+    except Exception as e:
+        print(f"Error fetching pending transactions: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+    
+    finally:
+        if conn:
+            conn.close()
+
+@app.route('/api/transactions/completed', methods=['GET'])
+def get_completed_transactions():
+    if 'login_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    conn = None
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Get completed transactions based on role
+        if session.get('role') == 'staff':
+            cursor.execute("""
+                SELECT 
+                    TH.TRANSACTION_HEADER_ID,
+                    P.PAT_FNAME + ' ' + P.PAT_LNAME AS PatientName,
+                    D.USER_FNAME + ' ' + D.USER_LNAME AS DentistName,
+                    TH.TRANSC_DATE,
+                    TH.TOTAL_AMOUNT,
+                    TH.STATUS,
+                    TH.PAYMENT_MODE,
+                    TH.COMPLETED_DATE
+                FROM TRANSACTION_HEADER TH
+                JOIN APPOINTMENT A ON TH.APPT_ID = A.APPT_ID
+                JOIN PATIENT P ON A.PATIENT_ID = P.PATIENT_ID
+                JOIN DENTIST DT ON A.DENTIST_ID = DT.DENTIST_ID
+                JOIN USER_PROFILE D ON DT.LOGIN_ID = D.LOGIN_ID
+                WHERE TH.STATUS = 'COMPLETED'
+                ORDER BY TH.COMPLETED_DATE DESC
+            """)
+        else:  # dentist
+            cursor.execute("""
+                SELECT 
+                    TH.TRANSACTION_HEADER_ID,
+                    P.PAT_FNAME + ' ' + P.PAT_LNAME AS PatientName,
+                    TH.TRANSC_DATE,
+                    TH.TOTAL_AMOUNT,
+                    TH.STATUS,
+                    TH.PAYMENT_MODE,
+                    TH.COMPLETED_DATE
+                FROM TRANSACTION_HEADER TH
+                JOIN APPOINTMENT A ON TH.APPT_ID = A.APPT_ID
+                JOIN PATIENT P ON A.PATIENT_ID = P.PATIENT_ID
+                JOIN DENTIST D ON A.DENTIST_ID = D.DENTIST_ID
+                WHERE D.LOGIN_ID = ? AND TH.STATUS = 'COMPLETED'
+                ORDER BY TH.COMPLETED_DATE DESC
+            """, (session['login_id'],))
+        
+        transactions = []
+        columns = [column[0] for column in cursor.description]
+        for row in cursor.fetchall():
+            transactions.append(dict(zip(columns, row)))
+        
+        return jsonify(transactions)
+            
+    except Exception as e:
+        print(f"Error fetching completed transactions: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+        
+    finally:
+        if conn:
+            conn.close()
+
+@app.route('/api/transactions/create', methods=['POST'])
+def create_transaction():
+    if 'login_id' not in session or session.get('role') != 'dentist':
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        data = request.json
+        patient_id = data.get('patient_id')
+        treatment_ids = data.get('treatment_ids')
+        appointment_id = data.get('appointment_id')
+        
+        if not patient_id or not treatment_ids or not appointment_id:
+            return jsonify({'error': 'Patient ID, treatments, and appointment ID are required'}), 400
+            
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Get dentist ID from login ID
+        login_id = session['login_id']
+        cursor.execute("SELECT DENTIST_ID FROM DENTIST WHERE LOGIN_ID = ?", (login_id,))
+        dentist_result = cursor.fetchone()
+        
+        if not dentist_result:
+            return jsonify({"error": "Dentist not found"}), 404
+            
+        dentist_id = dentist_result[0]
+        
+        # Create transaction with PENDING status
+        cursor.execute("""
+            INSERT INTO TRANSACTION_HEADER (PATIENT_ID, DENTIST_ID, APPT_ID, TRANSC_DATE, TOTAL_AMOUNT, STATUS)
+            OUTPUT INSERTED.TRANSACTION_HEADER_ID
+            VALUES (?, ?, ?, GETDATE(), 0, 'PENDING')
+        """, (patient_id, dentist_id, appointment_id))
+        
+        transaction_id = cursor.fetchone()[0]
+        
+        # Insert treatments and calculate total
+        total_amount = 0
+        for treatment_id in treatment_ids.split(','):
+            cursor.execute("""
+                INSERT INTO TRANSACTION_DETAIL (TRANSACTION_HEADER_ID, TREATMENT_ID)
+                VALUES (?, ?)
+            """, (transaction_id, treatment_id))
+            
+            # Get treatment price
+            cursor.execute("SELECT TREATMENT_PRICE FROM TREATMENT WHERE TREATMENT_ID = ?", (treatment_id,))
+            price = cursor.fetchone()[0]
+            total_amount += float(price)
+        
+        # Update total amount
+        cursor.execute("""
+            UPDATE TRANSACTION_HEADER 
+            SET TOTAL_AMOUNT = ?
+            WHERE TRANSACTION_HEADER_ID = ?
+        """, (total_amount, transaction_id))
+        
+        conn.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Transaction created successfully',
+            'transaction_id': transaction_id,
+            'total_amount': total_amount
+        })
+            
+    except Exception as e:
+        print(f"Error creating transaction: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+        
+    finally:
+        if conn:
+            conn.close()
+
+@app.route('/api/transactions/complete', methods=['POST'])
+def complete_transaction():
+    if 'login_id' not in session or session.get('role') != 'staff':
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        data = request.json
+        transaction_id = data.get('transaction_id')
+        payment_mode = data.get('payment_mode')
+        insurance_id = data.get('insurance_id')
+        amount_paid = data.get('amount_paid')
+        
+        if not transaction_id or not payment_mode:
+            return jsonify({'error': 'Transaction ID and payment mode are required'}), 400
+            
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Update transaction status to COMPLETED
+        cursor.execute("""
+            UPDATE TRANSACTION_HEADER
+            SET STATUS = 'COMPLETED',
+                PAYMENT_MODE = ?,
+                INSURANCE_ID = ?,
+                AMOUNT_PAID = ?,
+                COMPLETED_BY = ?,
+                COMPLETED_DATE = GETDATE()
+            WHERE TRANSACTION_HEADER_ID = ?
+        """, (payment_mode, insurance_id, amount_paid, session['login_id'], transaction_id))
+        
+        # Update appointment status to COMPLETED
+        cursor.execute("""
+            UPDATE APPOINTMENT
+            SET APPT_STATUS = 'COMPLETED'
+            FROM APPOINTMENT A
+            JOIN TRANSACTION_HEADER TH ON A.APPT_ID = TH.APPT_ID
+            WHERE TH.TRANSACTION_HEADER_ID = ?
+        """, (transaction_id,))
+        
+        conn.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Transaction completed successfully',
+            'transaction_id': transaction_id
+        })
+            
+    except Exception as e:
+        print(f"Error completing transaction: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+        
+    finally:
+        if conn:
+            conn.close()
+
+@app.route('/api/insurance', methods=['GET'])
+def get_insurance_providers():
+    if 'login_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute("SELECT INSURANCE_ID, INSURANCE_COMPANY FROM INSURANCE")
+        
+        insurances = []
+        columns = [column[0] for column in cursor.description]
+        for row in cursor.fetchall():
+            insurances.append(dict(zip(columns, row)))
+            
+        conn.close()
+        return jsonify(insurances)
+        
+    except Exception as e:
+        print(f"Error fetching insurance providers: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/transactions/<int:transaction_id>', methods=['GET'])
+def get_transaction_details(transaction_id):
+    if 'login_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute("EXEC SP_GET_TRANSACTION_DETAILS ?", (transaction_id,))
+        
+        # First result set - basic info
+        basic_info = {}
+        if cursor.description:
+            columns = [column[0] for column in cursor.description]
+            row = cursor.fetchone()
+            if row:
+                basic_info = dict(zip(columns, row))
+        
+        # Second result set - treatments
+        cursor.nextset()
+        treatments = []
+        if cursor.description:
+            columns = [column[0] for column in cursor.description]
+            for row in cursor.fetchall():
+                treatments.append(dict(zip(columns, row)))
+        
+        # Third result set - insurance (if exists)
+        cursor.nextset()
+        insurance = None
+        if cursor.description:
+            columns = [column[0] for column in cursor.description]
+            row = cursor.fetchone()
+            if row:
+                insurance = dict(zip(columns, row))
+        
+        conn.close()
+        
+        return jsonify({
+            'success': True,
+            'basic_info': basic_info,
+            'treatments': treatments,
+            'insurance': insurance
+        })
+    except Exception as e:
+        print(f"Error fetching transaction details: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/logout')
+def logout():
+    session.clear()  
+    return redirect(url_for('login'))
 
 # Staff Transaction Routes
 @app.route('/staff_transactions')
 def staff_transactions():
     if 'user' in session and session.get('role') == 'staff':
         try:
-            conn = get_db_connection()
-            cursor = conn.cursor()
-            
-            # Get pending transactions
-            cursor.execute("EXEC SP_GET_PENDING_TRANSACTIONS")
-            
-            transactions = []
-            columns = [column[0] for column in cursor.description]
-            for row in cursor.fetchall():
-                transactions.append(dict(zip(columns, row)))
-            
-            conn.close()
-            
+            return render_template('staff_transactions.html', 
+                                user_name=session.get('user'))
+        except Exception as e:
+            print(f"Error loading staff transactions page: {e}")
             return render_template('staff_transactions.html', 
                                 user_name=session.get('user'),
-                                transactions=transactions)
-        except Exception as e:
-            print(f"Error fetching staff transactions: {e}")
-            return render_template('staff_transactions.html', 
-                                user_name=session.get('user'),
-                                error="Unable to fetch transaction data")
-    else:
-        return redirect(url_for('login'))
-
-@app.route('/api/transactions/create', methods=['POST'])
-def create_transaction():
-    if 'user' in session and session.get('role') == 'dentist':
-        try:
-            data = request.json
-            patient_id = data.get('patient_id')
-            treatment_ids = data.get('treatment_ids')  # Should be comma-separated string
-            
-            if not patient_id or not treatment_ids:
-                return jsonify({'success': False, 'message': 'Patient ID and treatments are required'})
-            
-            # Get dentist ID from login ID
-            conn = get_db_connection()
-            cursor = conn.cursor()
-            cursor.execute("SELECT DENTIST_ID FROM DENTIST WHERE LOGIN_ID = ?", (session.get('login_id'),))
-            dentist_result = cursor.fetchone()
-            
-            if not dentist_result:
-                return jsonify({'success': False, 'message': 'Dentist not found'})
-            
-            dentist_id = dentist_result[0]
-            
-            # Create transaction
-            cursor.execute("""
-                EXEC SP_CREATE_TRANSACTION ?, ?, ?, ?
-            """, (patient_id, dentist_id, treatment_ids, session.get('login_id')))
-            
-            result = cursor.fetchone()
-            conn.commit()
-            conn.close()
-            
-            if result and result.Success == 1:
-                return jsonify({
-                    'success': True,
-                    'message': result.Message,
-                    'transaction_id': result.TransactionID,
-                    'total_amount': float(result.TotalAmount)
-                })
-            else:
-                return jsonify({'success': False, 'message': result.Message if result else 'Transaction creation failed'})
-                
-        except Exception as e:
-            print(f"Error creating transaction: {e}")
-            return jsonify({'success': False, 'message': str(e)})
-    else:
-        return jsonify({'success': False, 'message': 'Unauthorized'})
-
-@app.route('/api/transactions/complete', methods=['POST'])
-def complete_transaction():
-    if 'user' in session and session.get('role') == 'staff':
-        try:
-            data = request.json
-            transaction_id = data.get('transaction_id')
-            payment_mode = data.get('payment_mode')
-            insurance_id = data.get('insurance_id')
-            amount_paid = data.get('amount_paid')
-            
-            if not transaction_id or not payment_mode or not amount_paid:
-                return jsonify({'success': False, 'message': 'Transaction ID, payment mode and amount are required'})
-            
-            conn = get_db_connection()
-            cursor = conn.cursor()
-            
-            # Complete transaction
-            cursor.execute("""
-                EXEC SP_COMPLETE_TRANSACTION ?, ?, ?, ?, ?
-            """, (transaction_id, payment_mode, insurance_id, amount_paid, session.get('login_id')))
-            
-            result = cursor.fetchone()
-            conn.commit()
-            conn.close()
-            
-            if result and result.Success == 1:
-                return jsonify({
-                    'success': True,
-                    'message': result.Message,
-                    'transaction_id': result.TransactionID
-                })
-            else:
-                return jsonify({'success': False, 'message': result.Message if result else 'Transaction completion failed'})
-                
-        except Exception as e:
-            print(f"Error completing transaction: {e}")
-            return jsonify({'success': False, 'message': str(e)})
-    else:
-        return jsonify({'success': False, 'message': 'Unauthorized'})
-
-@app.route('/api/transactions/<int:transaction_id>')
-def get_transaction_details(transaction_id):
-    if 'user' in session:
-        try:
-            conn = get_db_connection()
-            cursor = conn.cursor()
-            
-            cursor.execute("EXEC SP_GET_TRANSACTION_DETAILS ?", (transaction_id,))
-            
-            # First result set - basic info
-            basic_info = {}
-            if cursor.description:
-                columns = [column[0] for column in cursor.description]
-                row = cursor.fetchone()
-                if row:
-                    basic_info = dict(zip(columns, row))
-            
-            # Second result set - treatments
-            cursor.nextset()
-            treatments = []
-            if cursor.description:
-                columns = [column[0] for column in cursor.description]
-                for row in cursor.fetchall():
-                    treatments.append(dict(zip(columns, row)))
-            
-            # Third result set - insurance (if exists)
-            cursor.nextset()
-            insurance = None
-            if cursor.description:
-                columns = [column[0] for column in cursor.description]
-                row = cursor.fetchone()
-                if row:
-                    insurance = dict(zip(columns, row))
-            
-            conn.close()
-            
-            return jsonify({
-                'success': True,
-                'basic_info': basic_info,
-                'treatments': treatments,
-                'insurance': insurance
-            })
-        except Exception as e:
-            print(f"Error fetching transaction details: {e}")
-            return jsonify({'success': False, 'message': str(e)})
-    else:
-        return jsonify({'success': False, 'message': 'Unauthorized'})
-
-@app.route('/logout')
-def logout():
-    session.clear()  
+                                error="Unable to load transactions page")
     return redirect(url_for('login'))
 
 if __name__ == '__main__':
